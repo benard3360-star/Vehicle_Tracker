@@ -61,6 +61,9 @@ urlpatterns = [
     # Admin Module Views (for admin roles)
     path('analytics/', views.analytics, name='analytics'),
     path('inventory/', views.inventory, name='inventory'),
+    path('inventory/add/', views.add_inventory_item, name='add_inventory_item'),
+    path('inventory/export/', views.export_inventory_report, name='export_inventory_report'),
+    path('inventory/settings/', views.inventory_settings, name='inventory_settings'),
     path('sales/', views.sales, name='sales'),
     path('hr-dashboard/', views.hr_dashboard, name='hr_dashboard'),
     path('hr-dashboard/export/', views.export_hr_report, name='export_hr_report'),

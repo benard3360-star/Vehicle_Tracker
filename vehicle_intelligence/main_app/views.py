@@ -8,7 +8,7 @@ from django.views.decorators.http import require_POST, require_GET
 from django.core.paginator import Paginator
 from django.db.models import Q, Count
 import json
-from .models import Organization, ActivityLog, CustomUser
+from .models import Organization, ActivityLog, CustomUser, InventoryItem
 import secrets
 import string
 from .models import UserProfile, Document, Notification, ActivityLog, ProfileAuditLog
@@ -1190,6 +1190,18 @@ def inventory(request):
         messages.error(request, "You don't have permission to access this page.")
         return redirect('dashboard')
     
+    # Get inventory data
+    vehicles = InventoryItem.objects.filter(item_type='vehicle')
+    parts = InventoryItem.objects.filter(item_type='part')
+    
+    context = {
+        'vehicles': vehicles,
+        'parts': parts,
+        'total_vehicles': vehicles.count(),
+        'total_parts': parts.count(),
+        'low_stock_parts': parts.filter(part_status='low_stock').count(),
+    }
+    
     ActivityLog.objects.create(
         user=request.user,
         organization=request.user.organization,
@@ -1200,7 +1212,226 @@ def inventory(request):
         user_agent=request.META.get('HTTP_USER_AGENT', '')
     )
     
-    return render(request, 'inventory.html')
+    return render(request, 'inventory.html', context)
+
+@login_required
+def add_inventory_item(request):
+    """Add new inventory item"""
+    if not request.user.can_access_module('inventory'):
+        return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body) if request.body else request.POST
+            
+            item_type = data.get('item_type')
+            name = data.get('name', '').strip()
+            price = data.get('price')
+            
+            if not name or not price or not item_type:
+                return JsonResponse({'success': False, 'error': 'Name, price, and item type are required'}, status=400)
+            
+            item = InventoryItem.objects.create(
+                name=name,
+                item_type=item_type,
+                description=data.get('description', ''),
+                price=float(price),
+                created_by=request.user
+            )
+            
+            # Set type-specific fields
+            if item_type == 'vehicle':
+                item.model = data.get('model', '')
+                item.year = int(data.get('year')) if data.get('year') else None
+                item.color = data.get('color', '')
+                item.vin = data.get('vin', '')
+                item.vehicle_status = data.get('vehicle_status', 'available')
+            elif item_type == 'part':
+                item.part_number = data.get('part_number', '')
+                item.category = data.get('category', '')
+                item.quantity = int(data.get('quantity', 0))
+                item.min_stock_level = int(data.get('min_stock_level', 10))
+            
+            item.save()
+            
+            ActivityLog.objects.create(
+                user=request.user,
+                organization=request.user.organization,
+                action='create',
+                module='inventory',
+                description=f'Added inventory item: {name}',
+                ip_address=get_client_ip(request),
+                user_agent=request.META.get('HTTP_USER_AGENT', '')
+            )
+            
+            return JsonResponse({
+                'success': True,
+                'message': f'{item_type.title()} added successfully!',
+                'item': {
+                    'id': item.id,
+                    'name': item.name,
+                    'item_type': item.item_type,
+                    'price': str(item.price)
+                }
+            })
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=405)
+
+@login_required
+def export_inventory_report(request):
+    """Export inventory report in CSV or PDF format"""
+    if not request.user.can_access_module('inventory'):
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    export_format = request.GET.get('format', 'csv')
+    
+    vehicles = InventoryItem.objects.filter(item_type='vehicle')
+    parts = InventoryItem.objects.filter(item_type='part')
+    
+    if export_format == 'csv':
+        return export_inventory_csv(vehicles, parts)
+    elif export_format == 'pdf':
+        return export_inventory_pdf(vehicles, parts)
+    else:
+        return JsonResponse({'error': 'Invalid format'}, status=400)
+
+def export_inventory_csv(vehicles, parts):
+    """Export inventory data as CSV"""
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="inventory_report_{timezone.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+    
+    writer = csv.writer(response)
+    
+    # Write vehicles section
+    writer.writerow(['VEHICLE INVENTORY'])
+    writer.writerow(['Name', 'Model', 'Year', 'Color', 'VIN', 'Status', 'Price'])
+    
+    for vehicle in vehicles:
+        writer.writerow([
+            vehicle.name,
+            vehicle.model or 'N/A',
+            vehicle.year or 'N/A',
+            vehicle.color or 'N/A',
+            vehicle.vin or 'N/A',
+            vehicle.get_vehicle_status_display() if vehicle.vehicle_status else 'N/A',
+            f'KSh {vehicle.price:,.2f}'
+        ])
+    
+    writer.writerow([])  # Empty row
+    
+    # Write parts section
+    writer.writerow(['PARTS INVENTORY'])
+    writer.writerow(['Name', 'Part Number', 'Category', 'Quantity', 'Min Stock', 'Status', 'Price'])
+    
+    for part in parts:
+        writer.writerow([
+            part.name,
+            part.part_number or 'N/A',
+            part.category or 'N/A',
+            part.quantity,
+            part.min_stock_level,
+            part.get_part_status_display() if part.part_status else 'N/A',
+            f'KSh {part.price:,.2f}'
+        ])
+    
+    return response
+
+def export_inventory_pdf(vehicles, parts):
+    """Export inventory data as PDF"""
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4)
+    styles = getSampleStyleSheet()
+    story = []
+    
+    # Title
+    title_style = ParagraphStyle('Title', parent=styles['Heading1'], fontSize=18, spaceAfter=30, alignment=1)
+    story.append(Paragraph('Inventory Report', title_style))
+    story.append(Paragraph(f'Generated: {timezone.now().strftime("%B %d, %Y at %H:%M")}', styles['Normal']))
+    story.append(Spacer(1, 20))
+    
+    # Vehicles section
+    story.append(Paragraph('Vehicle Inventory', styles['Heading2']))
+    
+    vehicle_data = [['Name', 'Model', 'Year', 'Status', 'Price']]
+    for vehicle in vehicles[:20]:  # Limit for PDF
+        vehicle_data.append([
+            vehicle.name,
+            vehicle.model or 'N/A',
+            str(vehicle.year) if vehicle.year else 'N/A',
+            vehicle.get_vehicle_status_display() if vehicle.vehicle_status else 'N/A',
+            f'KSh {vehicle.price:,.0f}'
+        ])
+    
+    vehicle_table = Table(vehicle_data)
+    vehicle_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
+    
+    story.append(vehicle_table)
+    story.append(Spacer(1, 30))
+    
+    # Parts section
+    story.append(Paragraph('Parts Inventory', styles['Heading2']))
+    
+    parts_data = [['Name', 'Category', 'Quantity', 'Status', 'Price']]
+    for part in parts[:20]:  # Limit for PDF
+        parts_data.append([
+            part.name,
+            part.category or 'N/A',
+            str(part.quantity),
+            part.get_part_status_display() if part.part_status else 'N/A',
+            f'KSh {part.price:,.0f}'
+        ])
+    
+    parts_table = Table(parts_data)
+    parts_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
+    
+    story.append(parts_table)
+    
+    doc.build(story)
+    buffer.seek(0)
+    
+    response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="inventory_report_{timezone.now().strftime("%Y%m%d_%H%M%S")}.pdf"'
+    
+    return response
+
+@login_required
+def inventory_settings(request):
+    """Inventory settings view"""
+    if not request.user.can_access_module('inventory'):
+        messages.error(request, "You don't have permission to access this page.")
+        return redirect('inventory')
+    
+    context = {
+        'user_role': request.user.role,
+        'now': timezone.now(),
+    }
+    
+    ActivityLog.objects.create(
+        user=request.user,
+        organization=request.user.organization,
+        action='view',
+        module='inventory_settings',
+        description='Accessed inventory settings',
+        ip_address=get_client_ip(request),
+        user_agent=request.META.get('HTTP_USER_AGENT', '')
+    )
+    
+    return render(request, 'inventory_settings.html', context)
 
 @login_required
 def sales(request):

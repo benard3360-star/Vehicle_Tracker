@@ -1,0 +1,453 @@
+{% extends 'base.html' %}
+
+{% block title %}Sales - Vehicle Intelligence System{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <div class="content-header">
+        <h1 class="page-title">Sales Management</h1>
+        <p class="page-subtitle">Vehicle sales tracking and customer management</p>
+    </div>
+
+    <div class="content-body">
+        <!-- Quick Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-car"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>342</h3>
+                    <p>Vehicles Sold</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>KSh 45.2M</h3>
+                    <p>Total Revenue</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>128</h3>
+                    <p>Active Customers</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>18%</h3>
+                    <p>Growth Rate</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary">
+                <i class="fas fa-plus"></i>
+                New Sale
+            </button>
+            <button class="btn btn-secondary">
+                <i class="fas fa-file-export"></i>
+                Export Report
+            </button>
+            <button class="btn btn-secondary">
+                <i class="fas fa-cog"></i>
+                Settings
+            </button>
+        </div>
+
+        <!-- Recent Sales -->
+        <div class="data-section">
+            <div class="section-header">
+                <h2>Recent Sales</h2>
+                <div class="section-actions">
+                    <input type="text" placeholder="Search sales..." class="search-input">
+                    <select class="filter-select">
+                        <option>All Status</option>
+                        <option>Completed</option>
+                        <option>Pending</option>
+                        <option>Cancelled</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sale ID</th>
+                            <th>Customer</th>
+                            <th>Vehicle</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>#SAL-2024-001</td>
+                            <td>John Doe</td>
+                            <td>Toyota Camry 2024</td>
+                            <td>KSh 3,200,000</td>
+                            <td><span class="status-badge status-completed">Completed</span></td>
+                            <td>Dec 18, 2024</td>
+                            <td>
+                                <button class="btn-icon" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn-icon" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>#SAL-2024-002</td>
+                            <td>Jane Smith</td>
+                            <td>Honda CR-V 2024</td>
+                            <td>KSh 4,100,000</td>
+                            <td><span class="status-badge status-pending">Pending</span></td>
+                            <td>Dec 17, 2024</td>
+                            <td>
+                                <button class="btn-icon" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn-icon" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>#SAL-2024-003</td>
+                            <td>Mike Johnson</td>
+                            <td>Nissan X-Trail 2024</td>
+                            <td>KSh 3,800,000</td>
+                            <td><span class="status-badge status-completed">Completed</span></td>
+                            <td>Dec 16, 2024</td>
+                            <td>
+                                <button class="btn-icon" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn-icon" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Top Customers -->
+        <div class="data-section">
+            <div class="section-header">
+                <h2>Top Customers</h2>
+                <button class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Add Customer
+                </button>
+            </div>
+
+            <div class="customer-grid">
+                <div class="customer-card">
+                    <div class="customer-info">
+                        <h3>Corporate Fleet Ltd</h3>
+                        <p>Fleet Management Company</p>
+                        <div class="customer-contact">
+                            <span><i class="fas fa-phone"></i> +254 700 123 456</span>
+                            <span><i class="fas fa-envelope"></i> fleet@corporate.co.ke</span>
+                        </div>
+                    </div>
+                    <div class="customer-stats">
+                        <div class="stat">
+                            <span class="value">24</span>
+                            <span class="label">Purchases</span>
+                        </div>
+                        <div class="stat">
+                            <span class="value">KSh 45M</span>
+                            <span class="label">Total Value</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="customer-card">
+                    <div class="customer-info">
+                        <h3>Safari Tours Kenya</h3>
+                        <p>Tourism & Travel</p>
+                        <div class="customer-contact">
+                            <span><i class="fas fa-phone"></i> +254 722 987 654</span>
+                            <span><i class="fas fa-envelope"></i> info@safaritours.co.ke</span>
+                        </div>
+                    </div>
+                    <div class="customer-stats">
+                        <div class="stat">
+                            <span class="value">18</span>
+                            <span class="label">Purchases</span>
+                        </div>
+                        <div class="stat">
+                            <span class="value">KSh 32M</span>
+                            <span class="label">Total Value</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="customer-card">
+                    <div class="customer-info">
+                        <h3>Logistics Express</h3>
+                        <p>Cargo & Delivery</p>
+                        <div class="customer-contact">
+                            <span><i class="fas fa-phone"></i> +254 733 456 789</span>
+                            <span><i class="fas fa-envelope"></i> orders@logistics.co.ke</span>
+                        </div>
+                    </div>
+                    <div class="customer-stats">
+                        <div class="stat">
+                            <span class="value">15</span>
+                            <span class="label">Purchases</span>
+                        </div>
+                        <div class="stat">
+                            <span class="value">KSh 28M</span>
+                            <span class="label">Total Value</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    background: #f0fdf4;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #16a34a;
+    font-size: 1.25rem;
+}
+
+.stat-content h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 0.25rem 0;
+}
+
+.stat-content p {
+    color: #6b7280;
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary {
+    background: #16a34a;
+    color: white;
+}
+
+.btn-secondary {
+    background: #f9fafb;
+    color: #374151;
+    border: 1px solid #d1d5db;
+}
+
+.data-section {
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 2rem;
+}
+
+.section-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.section-header h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.section-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.search-input, .filter-select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.875rem;
+}
+
+.data-table {
+    overflow-x: auto;
+}
+
+.data-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.data-table th {
+    background: #f9fafb;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.status-completed {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: #6b7280;
+    border-radius: 4px;
+}
+
+.btn-icon:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.customer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+    padding: 1.5rem;
+}
+
+.customer-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1.5rem;
+    background: #fafafa;
+}
+
+.customer-info h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 0.5rem 0;
+}
+
+.customer-info p {
+    color: #6b7280;
+    margin: 0 0 1rem 0;
+    font-size: 0.875rem;
+}
+
+.customer-contact {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.customer-contact span {
+    font-size: 0.875rem;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.customer-stats {
+    display: flex;
+    gap: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.customer-stats .stat {
+    text-align: center;
+}
+
+.customer-stats .value {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.customer-stats .label {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+</style>
+{% endblock %}

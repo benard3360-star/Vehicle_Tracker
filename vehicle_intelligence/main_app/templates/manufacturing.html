@@ -1,0 +1,512 @@
+{% extends 'base.html' %}
+
+{% block title %}Manufacturing - Vehicle Intelligence System{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <div class="content-header">
+        <h1 class="page-title">Manufacturing Management</h1>
+        <p class="page-subtitle">Vehicle assembly and production tracking</p>
+    </div>
+
+    <div class="content-body">
+        <!-- Quick Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-industry"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>156</h3>
+                    <p>Units in Production</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>89</h3>
+                    <p>Completed Today</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>24</h3>
+                    <p>Pending QC</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>94%</h3>
+                    <p>Efficiency Rate</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary">
+                <i class="fas fa-plus"></i>
+                New Production Order
+            </button>
+            <button class="btn btn-secondary">
+                <i class="fas fa-file-export"></i>
+                Export Report
+            </button>
+            <button class="btn btn-secondary">
+                <i class="fas fa-cog"></i>
+                Settings
+            </button>
+        </div>
+
+        <!-- Production Lines -->
+        <div class="data-section">
+            <div class="section-header">
+                <h2>Active Production Lines</h2>
+            </div>
+
+            <div class="production-grid">
+                <div class="production-card">
+                    <div class="production-header">
+                        <h3>Line A - Sedan Assembly</h3>
+                        <span class="status-badge status-active">Active</span>
+                    </div>
+                    <div class="production-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 75%"></div>
+                        </div>
+                        <span class="progress-text">75% Complete</span>
+                    </div>
+                    <div class="production-stats">
+                        <div class="stat">
+                            <span class="label">Target</span>
+                            <span class="value">120 units</span>
+                        </div>
+                        <div class="stat">
+                            <span class="label">Completed</span>
+                            <span class="value">90 units</span>
+                        </div>
+                        <div class="stat">
+                            <span class="label">Remaining</span>
+                            <span class="value">30 units</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="production-card">
+                    <div class="production-header">
+                        <h3>Line B - SUV Assembly</h3>
+                        <span class="status-badge status-active">Active</span>
+                    </div>
+                    <div class="production-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 60%"></div>
+                        </div>
+                        <span class="progress-text">60% Complete</span>
+                    </div>
+                    <div class="production-stats">
+                        <div class="stat">
+                            <span class="label">Target</span>
+                            <span class="value">80 units</span>
+                        </div>
+                        <div class="stat">
+                            <span class="label">Completed</span>
+                            <span class="value">48 units</span>
+                        </div>
+                        <div class="stat">
+                            <span class="label">Remaining</span>
+                            <span class="value">32 units</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="production-card">
+                    <div class="production-header">
+                        <h3>Line C - Truck Assembly</h3>
+                        <span class="status-badge status-maintenance">Maintenance</span>
+                    </div>
+                    <div class="production-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <span class="progress-text">Scheduled Maintenance</span>
+                    </div>
+                    <div class="production-stats">
+                        <div class="stat">
+                            <span class="label">Target</span>
+                            <span class="value">60 units</span>
+                        </div>
+                        <div class="stat">
+                            <span class="label">Completed</span>
+                            <span class="value">0 units</span>
+                        </div>
+                        <div class="stat">
+                            <span class="label">Remaining</span>
+                            <span class="value">60 units</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Orders -->
+        <div class="data-section">
+            <div class="section-header">
+                <h2>Recent Production Orders</h2>
+                <div class="section-actions">
+                    <input type="text" placeholder="Search orders..." class="search-input">
+                    <select class="filter-select">
+                        <option>All Status</option>
+                        <option>In Progress</option>
+                        <option>Completed</option>
+                        <option>On Hold</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Progress</th>
+                            <th>Status</th>
+                            <th>Start Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>#MFG-2024-001</td>
+                            <td>Sedan Model X</td>
+                            <td>120 units</td>
+                            <td>
+                                <div class="mini-progress">
+                                    <div class="mini-progress-fill" style="width: 75%"></div>
+                                </div>
+                            </td>
+                            <td><span class="status-badge status-progress">In Progress</span></td>
+                            <td>Dec 15, 2024</td>
+                            <td>
+                                <button class="btn-icon" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn-icon" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>#MFG-2024-002</td>
+                            <td>SUV Model Y</td>
+                            <td>80 units</td>
+                            <td>
+                                <div class="mini-progress">
+                                    <div class="mini-progress-fill" style="width: 60%"></div>
+                                </div>
+                            </td>
+                            <td><span class="status-badge status-progress">In Progress</span></td>
+                            <td>Dec 16, 2024</td>
+                            <td>
+                                <button class="btn-icon" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn-icon" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>#MFG-2024-003</td>
+                            <td>Sedan Model Z</td>
+                            <td>100 units</td>
+                            <td>
+                                <div class="mini-progress">
+                                    <div class="mini-progress-fill" style="width: 100%"></div>
+                                </div>
+                            </td>
+                            <td><span class="status-badge status-completed">Completed</span></td>
+                            <td>Dec 10, 2024</td>
+                            <td>
+                                <button class="btn-icon" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn-icon" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    background: #f0fdf4;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #16a34a;
+    font-size: 1.25rem;
+}
+
+.stat-content h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 0.25rem 0;
+}
+
+.stat-content p {
+    color: #6b7280;
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary {
+    background: #16a34a;
+    color: white;
+}
+
+.btn-secondary {
+    background: #f9fafb;
+    color: #374151;
+    border: 1px solid #d1d5db;
+}
+
+.data-section {
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 2rem;
+}
+
+.section-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.section-header h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.section-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.search-input, .filter-select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.875rem;
+}
+
+.production-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+    padding: 1.5rem;
+}
+
+.production-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1.5rem;
+    background: #fafafa;
+}
+
+.production-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.production-header h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.production-progress {
+    margin-bottom: 1rem;
+}
+
+.progress-bar {
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #16a34a;
+    transition: width 0.3s;
+}
+
+.progress-text {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.production-stats {
+    display: flex;
+    gap: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.production-stats .stat {
+    display: flex;
+    flex-direction: column;
+}
+
+.production-stats .label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-bottom: 0.25rem;
+}
+
+.production-stats .value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.status-active {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-maintenance {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-progress {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.status-completed {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.data-table {
+    overflow-x: auto;
+}
+
+.data-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.data-table th {
+    background: #f9fafb;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+}
+
+.mini-progress {
+    width: 100px;
+    height: 6px;
+    background: #e5e7eb;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.mini-progress-fill {
+    height: 100%;
+    background: #16a34a;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: #6b7280;
+    border-radius: 4px;
+}
+
+.btn-icon:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+</style>
+{% endblock %}

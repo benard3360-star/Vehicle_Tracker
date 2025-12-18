@@ -10,6 +10,10 @@ A modern Django-based vehicle movement intelligence and AI analytics system with
 - **AI Assistant** - Chat-based interface for movement insights and queries
 - **PDF Reports** - Generate comprehensive movement, fuel, and performance reports
 - **Role-based Access Control** - Super Admin, Organization Admin, and Employee roles
+- **Inventory Management** - Complete vehicle and parts inventory with stock tracking
+- **Sales Management** - Vehicle sales tracking and customer management
+- **Manufacturing** - Production line monitoring and order management
+- **Purchasing** - Supplier management and purchase order tracking
 
 ### User Management
 - **Multi-organization Support** - Separate organizations with dedicated admins
@@ -156,6 +160,32 @@ vehicle-intelligence-system/
 - Activity history and audit logs
 - Security settings and preferences
 
+### 6. Inventory Management (`/inventory/`)
+- Vehicle inventory with VIN tracking and status management
+- Parts inventory with stock levels and categories
+- Low stock alerts and automatic status updates
+- Add new items with dynamic forms (vehicle/part specific fields)
+- Export inventory reports in CSV and PDF formats
+- Configurable settings for stock management
+
+### 7. Sales Management (`/sales/`)
+- Vehicle sales tracking with customer information
+- Sales performance metrics and revenue tracking
+- Customer management with purchase history
+- Sales status tracking (completed, pending, cancelled)
+
+### 8. Manufacturing (`/manufacturing/`)
+- Production line monitoring with real-time progress
+- Production order management and tracking
+- Efficiency metrics and completion rates
+- Multi-line production with status indicators
+
+### 9. Purchasing (`/purchasing/`)
+- Purchase order management and tracking
+- Supplier relationship management
+- Order status tracking and delivery monitoring
+- Budget tracking and cost analysis
+
 ## 🔧 Configuration
 
 ### Environment Variables
@@ -173,6 +203,7 @@ DATABASE_URL=sqlite:///db.sqlite3
 - **Document** - File upload and management
 - **ActivityLog** - Comprehensive audit logging
 - **Notification** - User notification system
+- **InventoryItem** - Vehicle and parts inventory management
 
 ## 🎨 UI/UX Design
 
@@ -254,6 +285,8 @@ For support and questions:
 - **v1.1.0** - Added AI assistant and modern UI redesign
 - **v1.2.0** - Enhanced reporting with PDF generation
 - **v1.3.0** - Complete profile management system
+- **v1.4.0** - Added business modules (Inventory, Sales, Manufacturing, Purchasing)
+- **v1.4.1** - Enhanced inventory with add items, export (CSV/PDF), and settings
 
 ---
 

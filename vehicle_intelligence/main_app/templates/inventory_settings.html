@@ -1,0 +1,364 @@
+{% extends 'base.html' %}
+
+{% block title %}Inventory Settings - Vehicle Intelligence System{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <div class="content-header">
+        <h1 class="page-title">Inventory Settings</h1>
+        <p class="page-subtitle">Configure inventory management preferences</p>
+    </div>
+
+    <div class="content-body">
+        <!-- Navigation -->
+        <div class="settings-nav">
+            <a href="/inventory/" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Back to Inventory
+            </a>
+        </div>
+
+        <!-- General Settings -->
+        <div class="settings-section">
+            <div class="section-header">
+                <h2>General Settings</h2>
+            </div>
+            <div class="settings-content">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h3>Auto-refresh Inventory</h3>
+                        <p>Automatically refresh inventory data every 30 seconds</p>
+                    </div>
+                    <div class="setting-control">
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h3>Low Stock Alerts</h3>
+                        <p>Send notifications when parts reach minimum stock level</p>
+                    </div>
+                    <div class="setting-control">
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h3>Default Minimum Stock Level</h3>
+                        <p>Default minimum stock level for new parts</p>
+                    </div>
+                    <div class="setting-control">
+                        <input type="number" value="10" min="1" class="setting-input">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Display Settings -->
+        <div class="settings-section">
+            <div class="section-header">
+                <h2>Display Settings</h2>
+            </div>
+            <div class="settings-content">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h3>Items per Page</h3>
+                        <p>Number of items to display per page</p>
+                    </div>
+                    <div class="setting-control">
+                        <select class="setting-select">
+                            <option value="10">10 items</option>
+                            <option value="25" selected>25 items</option>
+                            <option value="50">50 items</option>
+                            <option value="100">100 items</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h3>Default View</h3>
+                        <p>Default view when opening inventory</p>
+                    </div>
+                    <div class="setting-control">
+                        <select class="setting-select">
+                            <option value="all" selected>All Items</option>
+                            <option value="vehicles">Vehicles Only</option>
+                            <option value="parts">Parts Only</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h3>Show Images</h3>
+                        <p>Display item images in inventory lists</p>
+                    </div>
+                    <div class="setting-control">
+                        <label class="switch">
+                            <input type="checkbox">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Export Settings -->
+        <div class="settings-section">
+            <div class="section-header">
+                <h2>Export Settings</h2>
+            </div>
+            <div class="settings-content">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h3>Default Export Format</h3>
+                        <p>Preferred format for inventory exports</p>
+                    </div>
+                    <div class="setting-control">
+                        <select class="setting-select">
+                            <option value="csv" selected>CSV</option>
+                            <option value="pdf">PDF</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h3>Include Images in PDF</h3>
+                        <p>Include item images when exporting to PDF</p>
+                    </div>
+                    <div class="setting-control">
+                        <label class="switch">
+                            <input type="checkbox">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="settings-actions">
+            <button class="btn btn-primary" onclick="saveSettings()">
+                <i class="fas fa-save"></i>
+                Save Settings
+            </button>
+            <button class="btn btn-secondary" onclick="resetSettings()">
+                <i class="fas fa-undo"></i>
+                Reset to Defaults
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+.settings-nav {
+    margin-bottom: 2rem;
+}
+
+.settings-section {
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 2rem;
+}
+
+.section-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.section-header h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.settings-content {
+    padding: 1.5rem;
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.setting-item:last-child {
+    border-bottom: none;
+}
+
+.setting-info h3 {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #111827;
+    margin: 0 0 0.25rem 0;
+}
+
+.setting-info p {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+.setting-control {
+    flex-shrink: 0;
+}
+
+.setting-input,
+.setting-select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    min-width: 120px;
+}
+
+/* Toggle Switch */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #16a34a;
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+.settings-actions {
+    display: flex;
+    gap: 1rem;
+    padding: 2rem 0;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: #16a34a;
+    color: white;
+}
+
+.btn-secondary {
+    background: #f9fafb;
+    color: #374151;
+    border: 1px solid #d1d5db;
+}
+
+.btn:hover {
+    opacity: 0.9;
+}
+</style>
+
+<script>
+function saveSettings() {
+    // Collect all settings
+    const settings = {
+        autoRefresh: document.querySelector('input[type="checkbox"]').checked,
+        lowStockAlerts: document.querySelectorAll('input[type="checkbox"]')[1].checked,
+        defaultMinStock: document.querySelector('input[type="number"]').value,
+        itemsPerPage: document.querySelector('select').value,
+        defaultView: document.querySelectorAll('select')[1].value,
+        showImages: document.querySelectorAll('input[type="checkbox"]')[2].checked,
+        defaultExportFormat: document.querySelectorAll('select')[2].value,
+        includeImagesInPdf: document.querySelectorAll('input[type="checkbox"]')[3].checked
+    };
+    
+    // Save to localStorage for now (in production, send to server)
+    localStorage.setItem('inventorySettings', JSON.stringify(settings));
+    
+    alert('Settings saved successfully!');
+}
+
+function resetSettings() {
+    if (confirm('Are you sure you want to reset all settings to defaults?')) {
+        // Reset all form elements to defaults
+        document.querySelectorAll('input[type="checkbox"]').forEach((checkbox, index) => {
+            checkbox.checked = index === 0 || index === 1; // First two checkboxes checked by default
+        });
+        
+        document.querySelector('input[type="number"]').value = 10;
+        
+        document.querySelectorAll('select').forEach((select, index) => {
+            select.selectedIndex = index === 0 ? 1 : 0; // Second option for first select, first for others
+        });
+        
+        localStorage.removeItem('inventorySettings');
+        alert('Settings reset to defaults!');
+    }
+}
+
+// Load saved settings on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const savedSettings = localStorage.getItem('inventorySettings');
+    if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+        
+        document.querySelectorAll('input[type="checkbox"]')[0].checked = settings.autoRefresh;
+        document.querySelectorAll('input[type="checkbox"]')[1].checked = settings.lowStockAlerts;
+        document.querySelector('input[type="number"]').value = settings.defaultMinStock;
+        document.querySelectorAll('select')[0].value = settings.itemsPerPage;
+        document.querySelectorAll('select')[1].value = settings.defaultView;
+        document.querySelectorAll('input[type="checkbox"]')[2].checked = settings.showImages;
+        document.querySelectorAll('select')[2].value = settings.defaultExportFormat;
+        document.querySelectorAll('input[type="checkbox"]')[3].checked = settings.includeImagesInPdf;
+    }
+});
+</script>
+{% endblock %}

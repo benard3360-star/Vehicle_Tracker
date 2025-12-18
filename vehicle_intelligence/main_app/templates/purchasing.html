@@ -1,0 +1,460 @@
+{% extends 'base.html' %}
+
+{% block title %}Purchasing - Vehicle Intelligence System{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <div class="content-header">
+        <h1 class="page-title">Purchasing Management</h1>
+        <p class="page-subtitle">Manage vehicle-related purchases and procurement</p>
+    </div>
+
+    <div class="content-body">
+        <!-- Quick Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>24</h3>
+                    <p>Active Orders</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-truck"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>8</h3>
+                    <p>Pending Deliveries</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>KSh 245,800</h3>
+                    <p>Monthly Budget</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>12</h3>
+                    <p>Suppliers</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary">
+                <i class="fas fa-plus"></i>
+                New Purchase Order
+            </button>
+            <button class="btn btn-secondary">
+                <i class="fas fa-file-export"></i>
+                Export Report
+            </button>
+            <button class="btn btn-secondary">
+                <i class="fas fa-cog"></i>
+                Settings
+            </button>
+        </div>
+
+        <!-- Recent Orders -->
+        <div class="data-section">
+            <div class="section-header">
+                <h2>Recent Purchase Orders</h2>
+                <div class="section-actions">
+                    <input type="text" placeholder="Search orders..." class="search-input">
+                    <select class="filter-select">
+                        <option>All Status</option>
+                        <option>Pending</option>
+                        <option>Approved</option>
+                        <option>Delivered</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Supplier</th>
+                            <th>Items</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>#PO-2024-001</td>
+                            <td>AutoParts Kenya</td>
+                            <td>Brake Pads, Oil Filter</td>
+                            <td>KSh 15,400</td>
+                            <td><span class="status-badge status-pending">Pending</span></td>
+                            <td>Dec 18, 2024</td>
+                            <td>
+                                <button class="btn-icon" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn-icon" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>#PO-2024-002</td>
+                            <td>Fuel Solutions Ltd</td>
+                            <td>Diesel Fuel - 500L</td>
+                            <td>KSh 75,000</td>
+                            <td><span class="status-badge status-approved">Approved</span></td>
+                            <td>Dec 17, 2024</td>
+                            <td>
+                                <button class="btn-icon" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn-icon" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>#PO-2024-003</td>
+                            <td>Tire World</td>
+                            <td>Vehicle Tires x4</td>
+                            <td>KSh 32,800</td>
+                            <td><span class="status-badge status-delivered">Delivered</span></td>
+                            <td>Dec 16, 2024</td>
+                            <td>
+                                <button class="btn-icon" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn-icon" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Supplier Management -->
+        <div class="data-section">
+            <div class="section-header">
+                <h2>Supplier Management</h2>
+                <button class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Add Supplier
+                </button>
+            </div>
+
+            <div class="supplier-grid">
+                <div class="supplier-card">
+                    <div class="supplier-info">
+                        <h3>AutoParts Kenya</h3>
+                        <p>Vehicle Parts & Accessories</p>
+                        <div class="supplier-contact">
+                            <span><i class="fas fa-phone"></i> +254 700 123 456</span>
+                            <span><i class="fas fa-envelope"></i> info@autoparts.co.ke</span>
+                        </div>
+                    </div>
+                    <div class="supplier-stats">
+                        <div class="stat">
+                            <span class="value">24</span>
+                            <span class="label">Orders</span>
+                        </div>
+                        <div class="stat">
+                            <span class="value">98%</span>
+                            <span class="label">Rating</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="supplier-card">
+                    <div class="supplier-info">
+                        <h3>Fuel Solutions Ltd</h3>
+                        <p>Fuel Supply & Distribution</p>
+                        <div class="supplier-contact">
+                            <span><i class="fas fa-phone"></i> +254 722 987 654</span>
+                            <span><i class="fas fa-envelope"></i> sales@fuelsolutions.co.ke</span>
+                        </div>
+                    </div>
+                    <div class="supplier-stats">
+                        <div class="stat">
+                            <span class="value">18</span>
+                            <span class="label">Orders</span>
+                        </div>
+                        <div class="stat">
+                            <span class="value">95%</span>
+                            <span class="label">Rating</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="supplier-card">
+                    <div class="supplier-info">
+                        <h3>Tire World</h3>
+                        <p>Tires & Wheel Services</p>
+                        <div class="supplier-contact">
+                            <span><i class="fas fa-phone"></i> +254 733 456 789</span>
+                            <span><i class="fas fa-envelope"></i> orders@tireworld.co.ke</span>
+                        </div>
+                    </div>
+                    <div class="supplier-stats">
+                        <div class="stat">
+                            <span class="value">12</span>
+                            <span class="label">Orders</span>
+                        </div>
+                        <div class="stat">
+                            <span class="value">92%</span>
+                            <span class="label">Rating</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    background: #f0fdf4;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #16a34a;
+    font-size: 1.25rem;
+}
+
+.stat-content h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 0.25rem 0;
+}
+
+.stat-content p {
+    color: #6b7280;
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: #16a34a;
+    color: white;
+}
+
+.btn-secondary {
+    background: #f9fafb;
+    color: #374151;
+    border: 1px solid #d1d5db;
+}
+
+.data-section {
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 2rem;
+}
+
+.section-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.section-header h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.section-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.search-input, .filter-select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.875rem;
+}
+
+.data-table {
+    overflow-x: auto;
+}
+
+.data-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.data-table th {
+    background: #f9fafb;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.status-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-approved {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.status-delivered {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: #6b7280;
+    border-radius: 4px;
+}
+
+.btn-icon:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.supplier-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+    padding: 1.5rem;
+}
+
+.supplier-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1.5rem;
+    background: #fafafa;
+}
+
+.supplier-info h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 0.5rem 0;
+}
+
+.supplier-info p {
+    color: #6b7280;
+    margin: 0 0 1rem 0;
+    font-size: 0.875rem;
+}
+
+.supplier-contact {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.supplier-contact span {
+    font-size: 0.875rem;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.supplier-stats {
+    display: flex;
+    gap: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.supplier-stats .stat {
+    text-align: center;
+}
+
+.supplier-stats .value {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.supplier-stats .label {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+</style>
+{% endblock %}

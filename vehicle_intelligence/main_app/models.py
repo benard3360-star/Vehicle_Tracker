@@ -552,3 +552,66 @@ class Notification(models.Model):
     def is_recent(self):
         """Check if notification is recent (within 24 hours)"""
         return (timezone.now() - self.created_at).days < 1
+
+
+class InventoryItem(models.Model):
+    """Inventory items (vehicles and parts)"""
+    ITEM_TYPE_CHOICES = [
+        ('vehicle', 'Vehicle'),
+        ('part', 'Part'),
+    ]
+    
+    VEHICLE_STATUS_CHOICES = [
+        ('available', 'Available'),
+        ('reserved', 'Reserved'),
+        ('sold', 'Sold'),
+    ]
+    
+    PART_STATUS_CHOICES = [
+        ('in_stock', 'In Stock'),
+        ('low_stock', 'Low Stock'),
+        ('out_of_stock', 'Out of Stock'),
+    ]
+    
+    name = models.CharField(max_length=255)
+    item_type = models.CharField(max_length=10, choices=ITEM_TYPE_CHOICES)
+    description = models.TextField(blank=True)
+    
+    # Vehicle specific fields
+    model = models.CharField(max_length=100, blank=True)
+    year = models.IntegerField(null=True, blank=True)
+    color = models.CharField(max_length=50, blank=True)
+    vin = models.CharField(max_length=17, blank=True, unique=True)
+    vehicle_status = models.CharField(max_length=20, choices=VEHICLE_STATUS_CHOICES, blank=True)
+    
+    # Part specific fields
+    part_number = models.CharField(max_length=50, blank=True)
+    category = models.CharField(max_length=100, blank=True)
+    quantity = models.IntegerField(default=0)
+    min_stock_level = models.IntegerField(default=10)
+    part_status = models.CharField(max_length=20, choices=PART_STATUS_CHOICES, blank=True)
+    
+    # Common fields
+    price = models.DecimalField(max_digits=12, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
+    
+    class Meta:
+        verbose_name = "Inventory Item"
+        verbose_name_plural = "Inventory Items"
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.name} ({self.get_item_type_display()})"
+    
+    def save(self, *args, **kwargs):
+        # Auto-set part status based on quantity
+        if self.item_type == 'part':
+            if self.quantity == 0:
+                self.part_status = 'out_of_stock'
+            elif self.quantity <= self.min_stock_level:
+                self.part_status = 'low_stock'
+            else:
+                self.part_status = 'in_stock'
+        super().save(*args, **kwargs)
