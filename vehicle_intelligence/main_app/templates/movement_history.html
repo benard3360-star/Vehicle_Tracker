@@ -1,0 +1,337 @@
+{% extends 'base.html' %}
+
+{% block page_title_text %}Movement History{% endblock %}
+{% block page_subtitle %}Track and analyze your vehicle movement history{% endblock %}
+
+{% block content %}
+<style>
+    .history-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .history-filters {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        flex-wrap: wrap;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .filter-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .filter-input {
+        padding: 8px 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s ease;
+    }
+
+    .filter-input:focus {
+        border-color: #16a34a;
+    }
+
+    .filter-button {
+        padding: 8px 16px;
+        background: #16a34a;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+
+    .filter-button:hover {
+        background: #15803d;
+    }
+
+    .history-content {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .history-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .history-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #111827;
+        margin: 0;
+    }
+
+    .history-list {
+        max-height: 600px;
+        overflow-y: auto;
+    }
+
+    .history-item {
+        padding: 20px 24px;
+        border-bottom: 1px solid #f3f4f6;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        transition: background 0.15s ease;
+    }
+
+    .history-item:hover {
+        background: #f9fafb;
+    }
+
+    .history-item:last-child {
+        border-bottom: none;
+    }
+
+    .history-icon {
+        width: 40px;
+        height: 40px;
+        background: #f0fdf4;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        color: #16a34a;
+        flex-shrink: 0;
+    }
+
+    .history-details {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .history-route {
+        font-size: 16px;
+        font-weight: 500;
+        color: #111827;
+        margin-bottom: 4px;
+    }
+
+    .history-meta {
+        display: flex;
+        gap: 16px;
+        font-size: 14px;
+        color: #6b7280;
+        flex-wrap: wrap;
+    }
+
+    .history-stats {
+        display: flex;
+        gap: 24px;
+        align-items: center;
+        flex-shrink: 0;
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 16px;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 2px;
+    }
+
+    .stat-label {
+        font-size: 12px;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .empty-state {
+        padding: 60px 24px;
+        text-align: center;
+        color: #9ca3af;
+    }
+
+    .empty-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.3;
+    }
+
+    @media (max-width: 768px) {
+        .history-filters {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .history-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .history-stats {
+            align-self: stretch;
+            justify-content: space-around;
+        }
+    }
+</style>
+
+<div class="history-container">
+    <div class="history-filters">
+        <div class="filter-group">
+            <label class="filter-label">Date From</label>
+            <input type="date" class="filter-input" value="{{ today|date:'Y-m-d' }}">
+        </div>
+        <div class="filter-group">
+            <label class="filter-label">Date To</label>
+            <input type="date" class="filter-input" value="{{ today|date:'Y-m-d' }}">
+        </div>
+        <div class="filter-group">
+            <label class="filter-label">Vehicle</label>
+            <select class="filter-input">
+                <option>All Vehicles</option>
+                <option>KCA 123A</option>
+                <option>KCB 456B</option>
+            </select>
+        </div>
+        <button class="filter-button">Apply Filters</button>
+    </div>
+
+    <div class="history-content">
+        <div class="history-header">
+            <h2 class="history-title">Movement History</h2>
+            <span style="font-size: 14px; color: #6b7280;">Today's trips</span>
+        </div>
+
+        <div class="history-list">
+            <div class="history-item">
+                <div class="history-icon">🚗</div>
+                <div class="history-details">
+                    <div class="history-route">Home → Office</div>
+                    <div class="history-meta">
+                        <span>08:30 AM - 08:55 AM</span>
+                        <span>Via Uhuru Highway</span>
+                        <span>KCA 123A</span>
+                    </div>
+                </div>
+                <div class="history-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">12.5</div>
+                        <div class="stat-label">KM</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">25</div>
+                        <div class="stat-label">MIN</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">1.0</div>
+                        <div class="stat-label">L</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="history-item">
+                <div class="history-icon">🍽️</div>
+                <div class="history-details">
+                    <div class="history-route">Office → Restaurant</div>
+                    <div class="history-meta">
+                        <span>01:15 PM - 01:23 PM</span>
+                        <span>Via Kenyatta Avenue</span>
+                        <span>KCA 123A</span>
+                    </div>
+                </div>
+                <div class="history-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">3.2</div>
+                        <div class="stat-label">KM</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">8</div>
+                        <div class="stat-label">MIN</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">0.3</div>
+                        <div class="stat-label">L</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="history-item">
+                <div class="history-icon">🏢</div>
+                <div class="history-details">
+                    <div class="history-route">Restaurant → Client Meeting</div>
+                    <div class="history-meta">
+                        <span>02:45 PM - 03:03 PM</span>
+                        <span>Via Waiyaki Way</span>
+                        <span>KCA 123A</span>
+                    </div>
+                </div>
+                <div class="history-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">7.8</div>
+                        <div class="stat-label">KM</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">18</div>
+                        <div class="stat-label">MIN</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">0.6</div>
+                        <div class="stat-label">L</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="history-item">
+                <div class="history-icon">🏠</div>
+                <div class="history-details">
+                    <div class="history-route">Client → Home</div>
+                    <div class="history-meta">
+                        <span>05:30 PM - 06:02 PM</span>
+                        <span>Via Thika Road</span>
+                        <span>KCA 123A</span>
+                    </div>
+                </div>
+                <div class="history-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">15.1</div>
+                        <div class="stat-label">KM</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">32</div>
+                        <div class="stat-label">MIN</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">1.2</div>
+                        <div class="stat-label">L</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .activities-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .activity-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        box-shadow: var(--shadow);
+        border-left: 4px solid;
+    }
+    
+    .activity-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .activity-user {
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+    
+    .activity-time {
+        color: var(--text-light);
+        font-size: 0.875rem;
+    }
+    
+    .activity-module {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        background: var(--light-bg);
+        border-radius: 20px;
+        font-size: 0.875rem;
+        margin-right: 0.5rem;
+    }
+    
+    .activity-description {
+        margin-top: 0.5rem;
+        color: var(--text-gray);
+    }
+    
+    .activity-ip {
+        font-size: 0.875rem;
+        color: var(--text-light);
+        margin-top: 0.25rem;
+    }
+    
+    .action-login { border-left-color: #4CAF50; }
+    .action-logout { border-left-color: #f44336; }
+    .action-create { border-left-color: #2196F3; }
+    .action-update { border-left-color: #FF9800; }
+    .action-delete { border-left-color: #9C27B0; }
+    .action-view { border-left-color: #607D8B; }
+</style>
+
+<div class="activities-container">
+    <div class="admin-header">
+        <h1>System Activities</h1>
+        <p>Monitor activities of super admins and organization admins</p>
+    </div>
+    
+    {% for activity in activities %}
+    <div class="activity-card action-{{ activity.action }}">
+        <div class="activity-header">
+            <div>
+                <span class="activity-user">{{ activity.user.username }}</span>
+                <span class="activity-module">{{ activity.module|title }}</span>
+                <span class="activity-time">{{ activity.timestamp|timesince }} ago</span>
+            </div>
+            <div>
+                <strong>{{ activity.get_action_display }}</strong>
+            </div>
+        </div>
+        
+        <div class="activity-description">
+            {{ activity.description }}
+        </div>
+        
+        <div class="activity-ip">
+            {% if activity.organization %}
+                Organization: {{ activity.organization.name }} •
+            {% endif %}
+            IP: {{ activity.ip_address|default:"Unknown" }}
+        </div>
+    </div>
+    {% empty %}
+    <div class="activity-card">
+        <div class="activity-header">
+            <div>No activities found</div>
+        </div>
+        <div class="activity-description">
+            System activities will appear here
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

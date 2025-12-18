@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+
+{% block title %}HR Settings - {{ organization.name }}{% endblock %}
+
+{% block page_title_text %}HR Settings{% endblock %}
+{% block page_subtitle %}{{ organization.name }} - Human Resources Configuration{% endblock %}
+
+{% block extra_css %}
+<style>
+    .settings-grid {
+        display: grid;
+        gap: 25px;
+        grid-template-columns: 1fr;
+        margin-bottom: 30px;
+    }
+
+    .settings-card {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+        border-radius: var(--radius-lg);
+        padding: 25px;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-green);
+        transition: all var(--transition-normal);
+    }
+
+    .settings-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .settings-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid var(--border-green);
+    }
+
+    .settings-icon {
+        width: 50px;
+        height: 50px;
+        background: var(--primary-gradient);
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 20px;
+        box-shadow: var(--shadow-green);
+    }
+
+    .settings-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-dark);
+    }
+
+    .action-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .action-card {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 20px;
+        border-radius: var(--radius-md);
+        text-decoration: none;
+        text-align: center;
+        transition: all var(--transition-normal);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .action-card:hover {
+        background: var(--primary-gradient-hover);
+        transform: translateY(-3px);
+        color: white;
+        text-decoration: none;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .action-card i {
+        font-size: 24px;
+    }
+
+    .action-card span {
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="settings-grid">
+    <!-- HR Management -->
+    <div class="settings-card">
+        <div class="settings-header">
+            <div class="settings-icon">
+                <i class="fas fa-users-cog"></i>
+            </div>
+            <div>
+                <div class="settings-title">HR Management</div>
+                <p style="color: var(--text-medium); margin: 0; font-size: 14px;">Manage human resources and employee data</p>
+            </div>
+        </div>
+
+        <div class="action-grid">
+            <a href="{% url 'hr_dashboard' %}" class="action-card">
+                <i class="fas fa-chart-line"></i>
+                <span>HR Dashboard</span>
+            </a>
+            
+            <a href="{% url 'export_hr_report' %}?format=csv" class="action-card">
+                <i class="fas fa-file-csv"></i>
+                <span>Export CSV</span>
+            </a>
+            
+            <a href="{% url 'export_hr_report' %}?format=pdf" class="action-card">
+                <i class="fas fa-file-pdf"></i>
+                <span>Export PDF</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Organization Settings -->
+    <div class="settings-card">
+        <div class="settings-header">
+            <div class="settings-icon">
+                <i class="fas fa-building"></i>
+            </div>
+            <div>
+                <div class="settings-title">Organization Information</div>
+                <p style="color: var(--text-medium); margin: 0; font-size: 14px;">View organization details and settings</p>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+            <div style="background: var(--bg-green-light); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-green);">
+                <h5 style="margin: 0 0 10px 0; color: var(--text-dark);">Organization Name</h5>
+                <p style="margin: 0; color: var(--text-medium); font-size: 14px;">{{ organization.name }}</p>
+            </div>
+            
+            <div style="background: var(--bg-green-light); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-green);">
+                <h5 style="margin: 0 0 10px 0; color: var(--text-dark);">Contact Email</h5>
+                <p style="margin: 0; color: var(--text-medium); font-size: 14px;">{{ organization.email }}</p>
+            </div>
+            
+            <div style="background: var(--bg-green-light); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-green);">
+                <h5 style="margin: 0 0 10px 0; color: var(--text-dark);">Status</h5>
+                <p style="margin: 0; font-size: 14px;">
+                    <span class="badge {% if organization.is_active %}badge-success{% else %}badge-danger{% endif %}">
+                        {% if organization.is_active %}Active{% else %}Inactive{% endif %}
+                    </span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover effects to action cards
+    const actionCards = document.querySelectorAll('.action-card');
+    actionCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+});
+</script>
+{% endblock %}

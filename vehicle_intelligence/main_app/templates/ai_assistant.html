@@ -1,0 +1,455 @@
+{% extends 'base.html' %}
+
+{% block page_title_text %}AI Assistant{% endblock %}
+{% block page_subtitle %}Chat with AI to track and analyze your vehicle movements{% endblock %}
+
+{% block content %}
+<style>
+    .ai-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        height: calc(100vh - 200px);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-container {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .chat-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .ai-avatar {
+        width: 40px;
+        height: 40px;
+        background: #16a34a;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 18px;
+    }
+
+    .chat-title {
+        flex: 1;
+    }
+
+    .chat-title h2 {
+        font-size: 18px;
+        font-weight: 600;
+        color: #111827;
+        margin: 0;
+    }
+
+    .chat-title p {
+        font-size: 14px;
+        color: #6b7280;
+        margin: 0;
+    }
+
+    .chat-messages {
+        flex: 1;
+        padding: 24px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .message {
+        display: flex;
+        gap: 12px;
+        max-width: 80%;
+    }
+
+    .message.user {
+        align-self: flex-end;
+        flex-direction: row-reverse;
+    }
+
+    .message-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .message.ai .message-avatar {
+        background: #16a34a;
+        color: white;
+    }
+
+    .message.user .message-avatar {
+        background: #f3f4f6;
+        color: #6b7280;
+    }
+
+    .message-content {
+        background: #f9fafb;
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .message.ai .message-content {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+    }
+
+    .message.user .message-content {
+        background: #f3f4f6;
+        border: 1px solid #e5e7eb;
+    }
+
+    .chat-input {
+        padding: 20px 24px;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        gap: 12px;
+        align-items: flex-end;
+    }
+
+    .input-wrapper {
+        flex: 1;
+        position: relative;
+    }
+
+    .chat-textarea {
+        width: 100%;
+        min-height: 44px;
+        max-height: 120px;
+        padding: 12px 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        resize: none;
+        outline: none;
+        transition: border-color 0.2s ease;
+    }
+
+    .chat-textarea:focus {
+        border-color: #16a34a;
+        box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+    }
+
+    .send-button {
+        padding: 12px 16px;
+        background: #16a34a;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .send-button:hover {
+        background: #15803d;
+    }
+
+    .send-button:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+    }
+
+    .quick-actions {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+    }
+
+    .quick-action {
+        padding: 8px 12px;
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        font-size: 12px;
+        color: #6b7280;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .quick-action:hover {
+        background: #f0fdf4;
+        border-color: #16a34a;
+        color: #16a34a;
+    }
+
+    .typing-indicator {
+        display: none;
+        align-items: center;
+        gap: 8px;
+        color: #6b7280;
+        font-size: 14px;
+        padding: 12px 0;
+    }
+
+    .typing-dots {
+        display: flex;
+        gap: 4px;
+    }
+
+    .typing-dot {
+        width: 6px;
+        height: 6px;
+        background: #9ca3af;
+        border-radius: 50%;
+        animation: typing 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+        0%, 60%, 100% {
+            transform: translateY(0);
+        }
+        30% {
+            transform: translateY(-10px);
+        }
+    }
+
+    .empty-state {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: #9ca3af;
+    }
+
+    .empty-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.3;
+    }
+
+    .empty-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #6b7280;
+    }
+
+    .empty-description {
+        font-size: 14px;
+        margin-bottom: 24px;
+    }
+
+    @media (max-width: 768px) {
+        .ai-container {
+            height: calc(100vh - 150px);
+        }
+
+        .chat-messages {
+            padding: 16px;
+        }
+
+        .chat-input {
+            padding: 16px;
+        }
+
+        .message {
+            max-width: 90%;
+        }
+    }
+</style>
+
+<div class="ai-container">
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="ai-avatar">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="chat-title">
+                <h2>Vehicle Movement AI Assistant</h2>
+                <p>Ask me about your vehicle locations, routes, and movement patterns</p>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="empty-state" id="emptyState">
+                <div class="empty-icon">🤖</div>
+                <div class="empty-title">Hello! I'm your Vehicle Intelligence Assistant</div>
+                <div class="empty-description">
+                    I can help you track vehicles, analyze movement patterns, and provide insights about your routes.
+                    Try asking me something like "Where is my vehicle?" or "Show me today's routes"
+                </div>
+            </div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            <div class="ai-avatar" style="width: 24px; height: 24px; font-size: 12px;">
+                <i class="fas fa-robot"></i>
+            </div>
+            <span>AI is thinking</span>
+            <div class="typing-dots">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        </div>
+
+        <div class="chat-input">
+            <div class="input-wrapper">
+                <div class="quick-actions">
+                    <div class="quick-action" onclick="sendQuickMessage('Where is my vehicle?')">📍 Vehicle Location</div>
+                    <div class="quick-action" onclick="sendQuickMessage('Show me today\\'s routes')">🗺️ Today's Routes</div>
+                    <div class="quick-action" onclick="sendQuickMessage('Analyze my movement patterns')">📊 Movement Analysis</div>
+                    <div class="quick-action" onclick="sendQuickMessage('Generate movement report')">📋 Generate Report</div>
+                </div>
+                <textarea 
+                    class="chat-textarea" 
+                    id="messageInput" 
+                    placeholder="Ask me about your vehicle movements..."
+                    rows="1"
+                    onkeydown="handleKeyDown(event)"
+                ></textarea>
+            </div>
+            <button class="send-button" id="sendButton" onclick="sendMessage()">
+                <i class="fas fa-paper-plane"></i>
+                Send
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let messageHistory = [];
+
+    function handleKeyDown(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            sendMessage();
+        }
+    }
+
+    function sendQuickMessage(message) {
+        document.getElementById('messageInput').value = message;
+        sendMessage();
+    }
+
+    function sendMessage() {
+        const input = document.getElementById('messageInput');
+        const message = input.value.trim();
+        
+        if (!message) return;
+
+        // Hide empty state
+        document.getElementById('emptyState').style.display = 'none';
+
+        // Add user message
+        addMessage(message, 'user');
+        
+        // Clear input
+        input.value = '';
+        
+        // Show typing indicator
+        showTypingIndicator();
+        
+        // Simulate AI response
+        setTimeout(() => {
+            hideTypingIndicator();
+            const aiResponse = generateAIResponse(message);
+            addMessage(aiResponse, 'ai');
+        }, 1500);
+    }
+
+    function addMessage(content, sender) {
+        const messagesContainer = document.getElementById('chatMessages');
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}`;
+        
+        const avatar = document.createElement('div');
+        avatar.className = 'message-avatar';
+        avatar.innerHTML = sender === 'ai' ? '<i class="fas fa-robot"></i>' : '{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}';
+        
+        const messageContent = document.createElement('div');
+        messageContent.className = 'message-content';
+        messageContent.textContent = content;
+        
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(messageContent);
+        
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        
+        // Store in history
+        messageHistory.push({ content, sender, timestamp: new Date() });
+    }
+
+    function showTypingIndicator() {
+        document.getElementById('typingIndicator').style.display = 'flex';
+        document.getElementById('sendButton').disabled = true;
+    }
+
+    function hideTypingIndicator() {
+        document.getElementById('typingIndicator').style.display = 'none';
+        document.getElementById('sendButton').disabled = false;
+    }
+
+    function generateAIResponse(userMessage) {
+        const message = userMessage.toLowerCase();
+        
+        if (message.includes('location') || message.includes('where')) {
+            return "🚗 Your vehicle is currently located at: Nairobi CBD, Kenya (Lat: -1.2921, Lng: 36.8219). Last updated 2 minutes ago. The vehicle appears to be parked near Kenyatta Avenue.";
+        }
+        
+        if (message.includes('route') || message.includes('today')) {
+            return "📍 Today's routes:\n\n1. 08:30 AM - Home to Office (12.5 km, 25 mins)\n2. 01:15 PM - Office to Restaurant (3.2 km, 8 mins)\n3. 02:45 PM - Restaurant to Client Meeting (7.8 km, 18 mins)\n4. 05:30 PM - Client to Home (15.1 km, 32 mins)\n\nTotal distance: 38.6 km | Total time: 1h 23m";
+        }
+        
+        if (message.includes('pattern') || message.includes('analyz')) {
+            return "📊 Movement Pattern Analysis:\n\n• Most active hours: 8-10 AM, 5-7 PM\n• Average daily distance: 42.3 km\n• Common destinations: Office (45%), Home (30%), Shopping (15%)\n• Preferred routes: Uhuru Highway, Waiyaki Way\n• Fuel efficiency: 12.5 km/L average";
+        }
+        
+        if (message.includes('report')) {
+            return "📋 Generating your movement report...\n\nWeekly Summary:\n• Total distance: 298.4 km\n• Total trips: 28\n• Average trip duration: 18 minutes\n• Most visited location: Westlands Office\n• Peak travel time: 8:30 AM\n\nWould you like me to email you the detailed report?";
+        }
+        
+        if (message.includes('fuel') || message.includes('cost')) {
+            return "⛽ Fuel & Cost Analysis:\n\n• This week's fuel consumption: 23.8L\n• Estimated fuel cost: KSh 3,570\n• Average efficiency: 12.5 km/L\n• Cost per km: KSh 11.96\n• Savings tip: Use Thika Road during off-peak hours to save 15% on fuel";
+        }
+        
+        // Default response
+        return "I understand you're asking about vehicle movements. I can help you with:\n\n🚗 Real-time vehicle location\n📍 Route history and analysis\n📊 Movement patterns and insights\n📋 Detailed reports\n⛽ Fuel consumption tracking\n\nTry asking something specific like 'Where is my vehicle?' or 'Show me this week's routes'";
+    }
+
+    // Auto-resize textarea
+    document.getElementById('messageInput').addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+</script>
+{% endblock %}

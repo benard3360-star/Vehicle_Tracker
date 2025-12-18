@@ -1,0 +1,357 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .admin-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .create-org-section {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow);
+    }
+    
+    .org-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+    
+    .org-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+        border-left: 4px solid var(--primary-green);
+    }
+    
+    .org-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 1rem;
+    }
+    
+    .org-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+    
+    .status-active {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    
+    .status-inactive {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    
+    .org-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+    
+    .admin-info {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 6px;
+        margin-top: 1rem;
+        font-size: 0.875rem;
+    }
+    
+    .no-admin {
+        color: #6c757d;
+        font-style: italic;
+    }
+</style>
+
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>Organizations Management</h1>
+        <p>Create and manage organizations</p>
+    </div>
+    
+    <div class="create-org-section">
+        <h3>Create New Organization</h3>
+        <form id="createOrgForm">
+            {% csrf_token %}
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Organization Name *</label>
+                    <input type="text" class="form-control" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" class="form-control" name="email" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="text" class="form-control" name="phone">
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <textarea class="form-control" name="address" rows="2"></textarea>
+                </div>
+            </div>
+            <button type="button" onclick="createOrganization()" class="btn btn-primary">Create Organization</button>
+        </form>
+    </div>
+    
+    <div class="org-grid">
+        {% for org in organizations %}
+        <div class="org-card">
+            <div class="org-header">
+                <div>
+                    <h4>{{ org.name }}</h4>
+                    <p class="text-muted">{{ org.email }}</p>
+                </div>
+                <span class="org-status {% if org.is_active %}status-active{% else %}status-inactive{% endif %}">
+                    {% if org.is_active %}Active{% else %}Inactive{% endif %}
+                </span>
+            </div>
+            
+            <div class="org-details">
+                <p><strong>Slug:</strong> {{ org.slug }}</p>
+                {% if org.phone %}<p><strong>Phone:</strong> {{ org.phone }}</p>{% endif %}
+                {% if org.address %}<p><strong>Address:</strong> {{ org.address|truncatechars:100 }}</p>{% endif %}
+                <p><strong>Created:</strong> {{ org.created_at|date:"M d, Y" }}</p>
+                <p><strong>Users:</strong> {{ org.get_user_count }}</p>
+            </div>
+            
+            <div class="admin-info">
+                <strong>Organization Admin:</strong>
+                {% if org.admin_user %}
+                    <div>{{ org.admin_user.get_full_name }} ({{ org.admin_user.username }})</div>
+                    <small>{{ org.admin_user.email }}</small>
+                {% else %}
+                    <div class="no-admin">No admin assigned</div>
+                    <button class="btn btn-sm btn-outline-primary mt-2" onclick="assignAdminModal('{{ org.id }}', '{{ org.name }}')">
+                        Assign Admin
+                    </button>
+                {% endif %}
+            </div>
+            
+            <div class="org-actions">
+                {% if org.admin_user %}
+                <button class="btn btn-sm btn-primary" onclick="resetAdminPassword('{{ org.admin_user.id }}', '{{ org.admin_user.username }}')">
+                    Reset Admin Password
+                </button>
+                {% endif %}
+                <button class="btn btn-sm btn-danger" onclick="deleteOrganization('{{ org.id }}', '{{ org.name }}')">
+                    Delete Organization
+                </button>
+            </div>
+        </div>
+        {% empty %}
+        <div class="org-card">
+            <h4>No Organizations</h4>
+            <p>Create your first organization to get started</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Assign Admin Modal -->
+<div id="assignAdminModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3>Assign Organization Admin</h3>
+        <p id="modalOrgName"></p>
+        <form id="assignAdminForm">
+            {% csrf_token %}
+            <input type="hidden" id="modalOrgId" name="org_id">
+            <div class="form-group">
+                <label>Username *</label>
+                <input type="text" class="form-control" name="username" required>
+            </div>
+            <div class="form-group">
+                <label>Email *</label>
+                <input type="email" class="form-control" name="email" required>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>First Name *</label>
+                    <input type="text" class="form-control" name="first_name" required>
+                </div>
+                <div class="form-group">
+                    <label>Last Name *</label>
+                    <input type="text" class="form-control" name="last_name" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Phone</label>
+                <input type="text" class="form-control" name="phone">
+            </div>
+            <button type="button" onclick="createOrgAdmin()" class="btn btn-primary">Create Admin</button>
+        </form>
+    </div>
+</div>
+
+<script>
+// Modal functionality
+const modal = document.getElementById('assignAdminModal');
+const span = document.getElementsByClassName("close")[0];
+
+function assignAdminModal(orgId, orgName) {
+    document.getElementById('modalOrgId').value = orgId;
+    document.getElementById('modalOrgName').textContent = 'Organization: ' + orgName;
+    modal.style.display = "block";
+}
+
+span.onclick = function() {
+    modal.style.display = "none";
+}
+
+window.onclick = function(event) {
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+
+function createOrganization() {
+    const form = document.getElementById('createOrgForm');
+    const formData = new FormData(form);
+    
+    fetch('{% url "super_admin_create_org" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error creating organization: ' + error);
+    });
+}
+
+function createOrgAdmin() {
+    const form = document.getElementById('assignAdminForm');
+    const formData = new FormData(form);
+    
+    fetch('{% url "super_admin_create_org_admin" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Organization admin created successfully!\nTemporary password: ' + data.user.temp_password);
+            modal.style.display = "none";
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error creating admin: ' + error);
+    });
+}
+
+function resetAdminPassword(userId, username) {
+    if (confirm('Reset password for ' + username + '?')) {
+        fetch('{% url "super_admin_reset_user_password" %}', {
+            method: 'POST',
+            body: JSON.stringify({ user_id: userId }),
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Password reset successfully!\nNew temporary password: ' + data.temp_password);
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        });
+    }
+}
+
+function deleteOrganization(orgId, orgName) {
+    if (confirm('Are you sure you want to delete organization: ' + orgName + '?\n\n⚠️ Warning: This will delete the organization and all its users.')) {
+        fetch('{% url "super_admin_delete_organization" %}', {
+            method: 'POST',
+            body: JSON.stringify({ org_id: orgId }),
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        });
+    }
+}
+</script>
+
+<style>
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 2rem;
+    border: 1px solid #888;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 8px;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: black;
+}
+</style>
+{% endblock %}

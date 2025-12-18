@@ -1,0 +1,726 @@
+{% extends 'base.html' %}
+
+{% block title %}Fix Issues Dashboard - {{ organization.name }}{% endblock %}
+
+{% block page_title_text %}Fix Issues Dashboard{% endblock %}
+{% block page_subtitle %}{{ organization.name }} - Resolve User & System Issues{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Fix Issues Dashboard Styles */
+    .issues-dashboard {
+        display: grid;
+        gap: 25px;
+        grid-template-columns: 1fr 1fr 1fr;
+        margin-bottom: 30px;
+        width: 100%;
+    }
+
+    .issue-card {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+        border-radius: var(--radius-lg);
+        padding: 25px;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-green);
+        transition: all var(--transition-normal);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .issue-card.critical {
+        border-left: 5px solid var(--danger-red);
+    }
+
+    .issue-card.warning {
+        border-left: 5px solid var(--warning-orange);
+    }
+
+    .issue-card.info {
+        border-left: 5px solid var(--info-blue);
+    }
+
+    .issue-card.success {
+        border-left: 5px solid var(--success-green);
+    }
+
+    .issue-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .issue-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid var(--border-green);
+    }
+
+    .issue-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text-dark);
+    }
+
+    .issue-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 18px;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .issue-icon.critical {
+        background: var(--danger-gradient);
+    }
+
+    .issue-icon.warning {
+        background: var(--warning-gradient);
+    }
+
+    .issue-icon.info {
+        background: var(--info-gradient);
+    }
+
+    .issue-icon.success {
+        background: var(--primary-gradient);
+    }
+
+    .issue-count {
+        background: var(--primary-gradient);
+        color: white;
+        font-size: 14px;
+        padding: 6px 12px;
+        border-radius: var(--radius-full);
+        font-weight: 700;
+        min-width: 30px;
+        text-align: center;
+    }
+
+    .issue-count.critical {
+        background: var(--danger-gradient);
+        animation: pulse 2s infinite;
+    }
+
+    .issue-count.warning {
+        background: var(--warning-gradient);
+    }
+
+    .issue-count.zero {
+        background: var(--success-green);
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.8; transform: scale(1.05); }
+    }
+
+    .issue-content {
+        margin-bottom: 20px;
+    }
+
+    .issue-description {
+        color: var(--text-medium);
+        font-size: 14px;
+        line-height: 1.6;
+        margin-bottom: 15px;
+    }
+
+    .issue-list {
+        max-height: 200px;
+        overflow-y: auto;
+        margin-bottom: 15px;
+    }
+
+    .issue-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border-green);
+        transition: all var(--transition-fast);
+    }
+
+    .issue-item:hover {
+        background: var(--bg-green-light);
+        margin: 0 -15px;
+        padding: 10px 15px;
+        border-radius: var(--radius-sm);
+    }
+
+    .issue-item:last-child {
+        border-bottom: none;
+    }
+
+    .issue-user-avatar {
+        width: 32px;
+        height: 32px;
+        background: var(--primary-gradient);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 12px;
+        flex-shrink: 0;
+    }
+
+    .issue-user-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .issue-user-name {
+        font-weight: 600;
+        color: var(--text-dark);
+        font-size: 14px;
+        margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .issue-user-detail {
+        font-size: 12px;
+        color: var(--text-medium);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .issue-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .fix-btn {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: var(--radius-md);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all var(--transition-normal);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+
+    .fix-btn:hover {
+        background: var(--primary-gradient-hover);
+        transform: translateY(-2px);
+        color: white;
+        text-decoration: none;
+    }
+
+    .fix-btn.secondary {
+        background: var(--info-gradient);
+    }
+
+    .fix-btn.secondary:hover {
+        background: linear-gradient(135deg, #1976D2 0%, #0D47A1 100%);
+    }
+
+    .no-issues {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--text-medium);
+    }
+
+    .no-issues i {
+        font-size: 48px;
+        color: var(--success-green);
+        margin-bottom: 15px;
+    }
+
+    .summary-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .summary-card {
+        background: linear-gradient(135deg, var(--accent-white) 0%, var(--primary-super-light) 100%);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        text-align: center;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-green);
+        transition: all var(--transition-normal);
+    }
+
+    .summary-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .summary-number {
+        font-size: 32px;
+        font-weight: 800;
+        color: var(--primary-dark);
+        margin-bottom: 8px;
+    }
+
+    .summary-label {
+        font-size: 13px;
+        color: var(--text-medium);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .back-btn {
+        background: var(--info-gradient);
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all var(--transition-normal);
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        margin-bottom: 25px;
+    }
+
+    .back-btn:hover {
+        background: linear-gradient(135deg, #1976D2 0%, #0D47A1 100%);
+        transform: translateY(-2px);
+        color: white;
+        text-decoration: none;
+    }
+
+    @media (max-width: 768px) {
+        .issues-dashboard {
+            grid-template-columns: 1fr;
+        }
+
+        .summary-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .issue-card {
+            padding: 20px;
+        }
+
+        .issue-actions {
+            flex-direction: column;
+        }
+
+        .fix-btn {
+            justify-content: center;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .summary-stats {
+            grid-template-columns: 1fr;
+        }
+
+        .issue-card {
+            padding: 15px;
+        }
+
+        .summary-number {
+            font-size: 24px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Back Button -->
+<a href="{% url 'org_admin_dashboard' %}" class="back-btn">
+    <i class="fas fa-arrow-left"></i>
+    Back to Dashboard
+</a>
+
+<!-- Summary Statistics -->
+<div class="summary-stats">
+    <div class="summary-card">
+        <div class="summary-number">{{ total_users }}</div>
+        <div class="summary-label">Total Users</div>
+    </div>
+    
+    <div class="summary-card">
+        <div class="summary-number">
+            {{ issues_data.incomplete_profiles|length|add:issues_data.expired_documents|length|add:issues_data.inactive_users|length|add:issues_data.missing_departments|length|add:issues_data.password_issues|length }}
+        </div>
+        <div class="summary-label">Total Issues</div>
+    </div>
+    
+    <div class="summary-card">
+        <div class="summary-number">{{ issues_data.incomplete_profiles|length }}</div>
+        <div class="summary-label">Profile Issues</div>
+    </div>
+    
+    <div class="summary-card">
+        <div class="summary-number">{{ issues_data.expired_documents|length }}</div>
+        <div class="summary-label">Document Issues</div>
+    </div>
+</div>
+
+<!-- Issues Dashboard Grid -->
+<div class="issues-dashboard">
+    <!-- Incomplete Profiles -->
+    <div class="issue-card {% if issues_data.incomplete_profiles %}warning{% else %}success{% endif %}">
+        <div class="issue-header">
+            <div class="issue-title">
+                <div class="issue-icon {% if issues_data.incomplete_profiles %}warning{% else %}success{% endif %}">
+                    <i class="fas fa-user-edit"></i>
+                </div>
+                Incomplete Profiles
+            </div>
+            <div class="issue-count {% if issues_data.incomplete_profiles %}warning{% else %}zero{% endif %}">
+                {{ issues_data.incomplete_profiles|length }}
+            </div>
+        </div>
+
+        <div class="issue-content">
+            <div class="issue-description">
+                Users with missing profile information such as date of birth, address, or contact details.
+            </div>
+
+            {% if issues_data.incomplete_profiles %}
+            <div class="issue-list">
+                {% for user in issues_data.incomplete_profiles %}
+                <div class="issue-item">
+                    <div class="issue-user-avatar">
+                        {{ user.first_name|first|upper|default:"U" }}{{ user.last_name|first|upper|default:"" }}
+                    </div>
+                    <div class="issue-user-info">
+                        <div class="issue-user-name">{{ user.get_full_name|default:user.username }}</div>
+                        <div class="issue-user-detail">{{ user.email }} • {{ user.get_role_display }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="no-issues">
+                <i class="fas fa-check-circle"></i>
+                <p>All user profiles are complete!</p>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if issues_data.incomplete_profiles %}
+        <div class="issue-actions">
+            <a href="{% url 'org_admin_dashboard' %}" class="fix-btn">
+                <i class="fas fa-tools"></i>
+                Review Profiles
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Expired Documents -->
+    <div class="issue-card {% if issues_data.expired_documents %}critical{% else %}success{% endif %}">
+        <div class="issue-header">
+            <div class="issue-title">
+                <div class="issue-icon {% if issues_data.expired_documents %}critical{% else %}success{% endif %}">
+                    <i class="fas fa-file-times"></i>
+                </div>
+                Expired Documents
+            </div>
+            <div class="issue-count {% if issues_data.expired_documents %}critical{% else %}zero{% endif %}">
+                {{ issues_data.expired_documents|length }}
+            </div>
+        </div>
+
+        <div class="issue-content">
+            <div class="issue-description">
+                Users with expired documents that need to be renewed or updated.
+            </div>
+
+            {% if issues_data.expired_documents %}
+            <div class="issue-list">
+                {% for item in issues_data.expired_documents %}
+                <div class="issue-item">
+                    <div class="issue-user-avatar">
+                        {{ item.user.first_name|first|upper|default:"U" }}{{ item.user.last_name|first|upper|default:"" }}
+                    </div>
+                    <div class="issue-user-info">
+                        <div class="issue-user-name">{{ item.user.get_full_name|default:item.user.username }}</div>
+                        <div class="issue-user-detail">{{ item.count }} expired document{{ item.count|pluralize }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="no-issues">
+                <i class="fas fa-shield-alt"></i>
+                <p>All documents are up to date!</p>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if issues_data.expired_documents %}
+        <div class="issue-actions">
+            <a href="{% url 'org_admin_dashboard' %}" class="fix-btn">
+                <i class="fas fa-sync-alt"></i>
+                Update Documents
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Inactive Users -->
+    <div class="issue-card {% if issues_data.inactive_users %}warning{% else %}success{% endif %}">
+        <div class="issue-header">
+            <div class="issue-title">
+                <div class="issue-icon {% if issues_data.inactive_users %}warning{% else %}success{% endif %}">
+                    <i class="fas fa-user-slash"></i>
+                </div>
+                Inactive Users
+            </div>
+            <div class="issue-count {% if issues_data.inactive_users %}warning{% else %}zero{% endif %}">
+                {{ issues_data.inactive_users|length }}
+            </div>
+        </div>
+
+        <div class="issue-content">
+            <div class="issue-description">
+                User accounts that are currently deactivated and may need attention.
+            </div>
+
+            {% if issues_data.inactive_users %}
+            <div class="issue-list">
+                {% for user in issues_data.inactive_users %}
+                <div class="issue-item">
+                    <div class="issue-user-avatar" style="background: var(--danger-gradient);">
+                        {{ user.first_name|first|upper|default:"U" }}{{ user.last_name|first|upper|default:"" }}
+                    </div>
+                    <div class="issue-user-info">
+                        <div class="issue-user-name">{{ user.get_full_name|default:user.username }}</div>
+                        <div class="issue-user-detail">{{ user.email }} • Inactive since {{ user.date_joined|date:"M d, Y" }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="no-issues">
+                <i class="fas fa-users"></i>
+                <p>All users are active!</p>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if issues_data.inactive_users %}
+        <div class="issue-actions">
+            <a href="{% url 'org_admin_dashboard' %}" class="fix-btn">
+                <i class="fas fa-user-check"></i>
+                Activate Users
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Missing Departments -->
+    <div class="issue-card {% if issues_data.missing_departments %}info{% else %}success{% endif %}">
+        <div class="issue-header">
+            <div class="issue-title">
+                <div class="issue-icon {% if issues_data.missing_departments %}info{% else %}success{% endif %}">
+                    <i class="fas fa-building"></i>
+                </div>
+                Missing Departments
+            </div>
+            <div class="issue-count {% if issues_data.missing_departments %}{% else %}zero{% endif %}">
+                {{ issues_data.missing_departments|length }}
+            </div>
+        </div>
+
+        <div class="issue-content">
+            <div class="issue-description">
+                Users who haven't been assigned to any department yet.
+            </div>
+
+            {% if issues_data.missing_departments %}
+            <div class="issue-list">
+                {% for user in issues_data.missing_departments %}
+                <div class="issue-item">
+                    <div class="issue-user-avatar">
+                        {{ user.first_name|first|upper|default:"U" }}{{ user.last_name|first|upper|default:"" }}
+                    </div>
+                    <div class="issue-user-info">
+                        <div class="issue-user-name">{{ user.get_full_name|default:user.username }}</div>
+                        <div class="issue-user-detail">{{ user.email }} • {{ user.get_role_display }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="no-issues">
+                <i class="fas fa-sitemap"></i>
+                <p>All users are assigned to departments!</p>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if issues_data.missing_departments %}
+        <div class="issue-actions">
+            <a href="{% url 'org_admin_dashboard' %}" class="fix-btn secondary">
+                <i class="fas fa-tags"></i>
+                Assign Departments
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Password Issues -->
+    <div class="issue-card {% if issues_data.password_issues %}warning{% else %}success{% endif %}">
+        <div class="issue-header">
+            <div class="issue-title">
+                <div class="issue-icon {% if issues_data.password_issues %}warning{% else %}success{% endif %}">
+                    <i class="fas fa-key"></i>
+                </div>
+                Password Issues
+            </div>
+            <div class="issue-count {% if issues_data.password_issues %}warning{% else %}zero{% endif %}">
+                {{ issues_data.password_issues|length }}
+            </div>
+        </div>
+
+        <div class="issue-content">
+            <div class="issue-description">
+                Users who still have temporary passwords and need to change them.
+            </div>
+
+            {% if issues_data.password_issues %}
+            <div class="issue-list">
+                {% for user in issues_data.password_issues %}
+                <div class="issue-item">
+                    <div class="issue-user-avatar" style="background: var(--warning-gradient);">
+                        {{ user.first_name|first|upper|default:"U" }}{{ user.last_name|first|upper|default:"" }}
+                    </div>
+                    <div class="issue-user-info">
+                        <div class="issue-user-name">{{ user.get_full_name|default:user.username }}</div>
+                        <div class="issue-user-detail">{{ user.email }} • Temporary password</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="no-issues">
+                <i class="fas fa-lock"></i>
+                <p>All passwords are secure!</p>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if issues_data.password_issues %}
+        <div class="issue-actions">
+            <a href="{% url 'org_admin_dashboard' %}" class="fix-btn">
+                <i class="fas fa-redo"></i>
+                Reset Passwords
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- System Health -->
+    <div class="issue-card success">
+        <div class="issue-header">
+            <div class="issue-title">
+                <div class="issue-icon success">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                System Health
+            </div>
+            <div class="issue-count zero">
+                OK
+            </div>
+        </div>
+
+        <div class="issue-content">
+            <div class="issue-description">
+                Overall system status and performance metrics.
+            </div>
+
+            <div class="no-issues">
+                <i class="fas fa-check-circle"></i>
+                <p>System is running smoothly!</p>
+            </div>
+        </div>
+
+        <div class="issue-actions">
+            <a href="{% url 'org_admin_dashboard' %}" class="fix-btn secondary">
+                <i class="fas fa-chart-line"></i>
+                View Analytics
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate issue cards on load
+    const issueCards = document.querySelectorAll('.issue-card');
+    issueCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+
+    // Animate summary numbers
+    const summaryNumbers = document.querySelectorAll('.summary-number');
+    summaryNumbers.forEach(number => {
+        const finalValue = parseInt(number.textContent);
+        if (isNaN(finalValue)) return;
+        
+        let currentValue = 0;
+        const increment = finalValue / 30;
+        const timer = setInterval(() => {
+            currentValue += increment;
+            if (currentValue >= finalValue) {
+                number.textContent = finalValue;
+                clearInterval(timer);
+            } else {
+                number.textContent = Math.floor(currentValue);
+            }
+        }, 50);
+    });
+
+    // Add hover effects to issue items
+    const issueItems = document.querySelectorAll('.issue-item');
+    issueItems.forEach(item => {
+        item.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateX(5px)';
+        });
+        
+        item.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateX(0)';
+        });
+    });
+
+    // Auto-refresh data every 2 minutes
+    setInterval(() => {
+        console.log('Auto-refreshing issues dashboard data...');
+        // You can add AJAX refresh logic here
+    }, 120000);
+});
+</script>
+{% endblock %}

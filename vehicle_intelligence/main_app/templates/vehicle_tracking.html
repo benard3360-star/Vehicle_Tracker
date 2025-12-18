@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+
+{% block page_title_text %}Vehicle Tracking{% endblock %}
+{% block page_subtitle %}Real-time vehicle location and monitoring{% endblock %}
+
+{% block content %}
+<style>
+    .tracking-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .tracking-header {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .vehicle-status {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .status-indicator {
+        width: 12px;
+        height: 12px;
+        background: #16a34a;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    .vehicle-info h2 {
+        font-size: 20px;
+        font-weight: 600;
+        color: #111827;
+        margin: 0;
+    }
+
+    .vehicle-info p {
+        font-size: 14px;
+        color: #6b7280;
+        margin: 4px 0 0 0;
+    }
+
+    .tracking-grid {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 24px;
+    }
+
+    .map-container {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        height: 500px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #9ca3af;
+        font-size: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .tracking-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .info-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .info-card h3 {
+        font-size: 16px;
+        font-weight: 600;
+        color: #111827;
+        margin: 0 0 16px 0;
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-size: 14px;
+        color: #6b7280;
+    }
+
+    .info-value {
+        font-size: 14px;
+        font-weight: 500;
+        color: #111827;
+    }
+
+    @media (max-width: 768px) {
+        .tracking-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .map-container {
+            height: 400px;
+        }
+    }
+</style>
+
+<div class="tracking-container">
+    <div class="tracking-header">
+        <div class="vehicle-status">
+            <div class="status-indicator"></div>
+            <div class="vehicle-info">
+                <h2>Vehicle KCA 123A - Active</h2>
+                <p>Last updated: 2 minutes ago</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="tracking-grid">
+        <div class="map-container">
+            🗺️ Interactive Map View
+            <br><small>Map integration would be implemented here</small>
+        </div>
+
+        <div class="tracking-sidebar">
+            <div class="info-card">
+                <h3>Current Location</h3>
+                <div class="info-item">
+                    <span class="info-label">Address</span>
+                    <span class="info-value">Nairobi CBD</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Coordinates</span>
+                    <span class="info-value">-1.2921, 36.8219</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Speed</span>
+                    <span class="info-value">0 km/h</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Status</span>
+                    <span class="info-value">Parked</span>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <h3>Today's Summary</h3>
+                <div class="info-item">
+                    <span class="info-label">Distance</span>
+                    <span class="info-value">38.6 km</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Duration</span>
+                    <span class="info-value">1h 23m</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Trips</span>
+                    <span class="info-value">4</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Fuel Used</span>
+                    <span class="info-value">3.1L</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+
+{% block title %}Settings - Vehicle Intelligence System{% endblock %}
+
+{% block page_title_text %}Settings{% endblock %}
+{% block page_subtitle %}Account & System Configuration{% endblock %}
+
+{% block extra_css %}
+<style>
+    .settings-container {
+        display: grid;
+        gap: 25px;
+        grid-template-columns: 1fr;
+        margin-bottom: 30px;
+    }
+
+    .settings-card {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+        border-radius: var(--radius-lg);
+        padding: 25px;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-green);
+        transition: all var(--transition-normal);
+    }
+
+    .settings-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .settings-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid var(--border-green);
+    }
+
+    .settings-icon {
+        width: 50px;
+        height: 50px;
+        background: var(--primary-gradient);
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 20px;
+        box-shadow: var(--shadow-green);
+    }
+
+    .settings-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-dark);
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid var(--border-green);
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        transition: all var(--transition-normal);
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+    }
+
+    .btn-primary {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all var(--transition-normal);
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-gradient-hover);
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="settings-container">
+    <!-- Profile Settings -->
+    <div class="settings-card">
+        <div class="settings-header">
+            <div class="settings-icon">
+                <i class="fas fa-user-cog"></i>
+            </div>
+            <div>
+                <div class="settings-title">Profile Settings</div>
+                <p style="color: var(--text-medium); margin: 0; font-size: 14px;">Update your personal information</p>
+            </div>
+        </div>
+
+        <form method="post" action="{% url 'update_profile' %}">
+            {% csrf_token %}
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label">First Name</label>
+                    <input type="text" name="first_name" class="form-control" value="{{ user.first_name }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Last Name</label>
+                    <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control" value="{{ user.email }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Phone</label>
+                    <input type="text" name="phone" class="form-control" value="{{ user.phone|default:'' }}">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Job Title</label>
+                    <input type="text" name="job_title" class="form-control" value="{{ user.job_title|default:'' }}">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Department</label>
+                    <input type="text" name="department" class="form-control" value="{{ user.department|default:'' }}">
+                </div>
+            </div>
+            
+            <button type="submit" class="btn-primary">
+                <i class="fas fa-save"></i>
+                Update Profile
+            </button>
+        </form>
+    </div>
+
+    <!-- Account Information -->
+    <div class="settings-card">
+        <div class="settings-header">
+            <div class="settings-icon">
+                <i class="fas fa-info-circle"></i>
+            </div>
+            <div>
+                <div class="settings-title">Account Information</div>
+                <p style="color: var(--text-medium); margin: 0; font-size: 14px;">View your account details</p>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+            <div style="background: var(--bg-green-light); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-green);">
+                <h5 style="margin: 0 0 10px 0; color: var(--text-dark);">Username</h5>
+                <p style="margin: 0; color: var(--text-medium); font-size: 14px;">{{ user.username }}</p>
+            </div>
+            
+            <div style="background: var(--bg-green-light); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-green);">
+                <h5 style="margin: 0 0 10px 0; color: var(--text-dark);">Role</h5>
+                <p style="margin: 0; color: var(--text-medium); font-size: 14px;">{{ user.get_role_display }}</p>
+            </div>
+            
+            <div style="background: var(--bg-green-light); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-green);">
+                <h5 style="margin: 0 0 10px 0; color: var(--text-dark);">Organization</h5>
+                <p style="margin: 0; color: var(--text-medium); font-size: 14px;">{{ organization.name|default:"Not assigned" }}</p>
+            </div>
+            
+            <div style="background: var(--bg-green-light); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-green);">
+                <h5 style="margin: 0 0 10px 0; color: var(--text-dark);">Member Since</h5>
+                <p style="margin: 0; color: var(--text-medium); font-size: 14px;">{{ user.date_joined|date:"M d, Y" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Settings -->
+    <div class="settings-card">
+        <div class="settings-header">
+            <div class="settings-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <div>
+                <div class="settings-title">Security Settings</div>
+                <p style="color: var(--text-medium); margin: 0; font-size: 14px;">Manage your account security</p>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+            <a href="{% url 'change_password' %}" style="background: var(--warning-gradient); color: white; padding: 15px 20px; border-radius: var(--radius-md); text-decoration: none; display: flex; align-items: center; gap: 10px; transition: all var(--transition-normal);">
+                <i class="fas fa-key"></i>
+                <span>Change Password</span>
+            </a>
+            
+            <a href="{% url 'profile_view' %}" style="background: var(--info-gradient); color: white; padding: 15px 20px; border-radius: var(--radius-md); text-decoration: none; display: flex; align-items: center; gap: 10px; transition: all var(--transition-normal);">
+                <i class="fas fa-user-circle"></i>
+                <span>View Full Profile</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover effects to action buttons
+    const actionButtons = document.querySelectorAll('a[style*="background"]');
+    actionButtons.forEach(button => {
+        button.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = 'var(--shadow-md)';
+        });
+        
+        button.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = 'none';
+        });
+    });
+});
+</script>
+{% endblock %}

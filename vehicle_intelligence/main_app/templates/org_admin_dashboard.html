@@ -1,0 +1,908 @@
+{% extends 'base.html' %}
+
+{% block title %}Organization Admin Dashboard - Vehicle Intelligence System{% endblock %}
+
+{% block page_title_text %}Organization Admin Dashboard{% endblock %}
+{% block page_subtitle %}{{ organization.name }} - Complete Management Overview{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Modern Organization Admin Dashboard */
+    :root {
+        --card-bg: #ffffff;
+        --card-border: #e5e7eb;
+        --text-primary: #111827;
+        --text-secondary: #6b7280;
+        --text-muted: #9ca3af;
+        --green-50: #f0fdf4;
+        --green-100: #dcfce7;
+        --green-500: #22c55e;
+        --green-600: #16a34a;
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    }
+
+    .dashboard-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0;
+    }
+
+    .dashboard-header {
+        margin-bottom: 32px;
+    }
+
+    .dashboard-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+        letter-spacing: -0.025em;
+    }
+
+    .dashboard-subtitle {
+        font-size: 16px;
+        color: var(--text-secondary);
+        font-weight: 400;
+    }
+
+    /* KPI Cards */
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+        margin-bottom: 40px;
+    }
+
+    .kpi-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 12px;
+        padding: 24px;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+
+    .kpi-card:hover {
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-2px);
+    }
+
+    .kpi-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+    }
+
+    .kpi-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .kpi-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--green-50);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--green-600);
+        font-size: 18px;
+    }
+
+    .kpi-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+        line-height: 1;
+    }
+
+    .kpi-change {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .kpi-change.positive {
+        color: var(--green-600);
+    }
+
+    .kpi-change.neutral {
+        color: var(--text-muted);
+    }
+
+    /* Content Grid */
+    .content-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 32px;
+        margin-bottom: 40px;
+    }
+
+    .main-content-area {
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+    }
+
+    .sidebar-content {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    /* Modern Cards */
+    .modern-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.2s ease;
+    }
+
+    .modern-card:hover {
+        box-shadow: var(--shadow-md);
+    }
+
+    .card-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--card-border);
+        background: var(--gray-50);
+    }
+
+    .card-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .card-body {
+        padding: 24px;
+    }
+
+    /* Modern Table */
+    .modern-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .modern-table th {
+        background: var(--gray-50);
+        padding: 12px 16px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--text-secondary);
+        border-bottom: 1px solid var(--card-border);
+    }
+
+    .modern-table td {
+        padding: 16px;
+        border-bottom: 1px solid var(--card-border);
+        font-size: 14px;
+        color: var(--text-primary);
+    }
+
+    .modern-table tr:hover {
+        background: var(--gray-50);
+    }
+
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        background: var(--green-500);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 14px;
+        margin-right: 12px;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+    }
+
+    .user-details {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .user-name {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 2px;
+    }
+
+    .user-meta {
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-sm {
+        padding: 6px 12px;
+        border-radius: 6px;
+        border: none;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-outline {
+        background: transparent;
+        border: 1px solid var(--card-border);
+        color: var(--text-secondary);
+    }
+
+    .btn-outline:hover {
+        background: var(--gray-50);
+        color: var(--text-primary);
+    }
+
+    /* Modern Badges */
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        line-height: 1;
+    }
+
+    .badge-success {
+        background: var(--green-100);
+        color: var(--green-600);
+    }
+
+    .badge-warning {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .badge-info {
+        background: #dbeafe;
+        color: #2563eb;
+    }
+
+    .badge-secondary {
+        background: var(--gray-100);
+        color: var(--text-secondary);
+    }
+
+    .activity-timeline {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .activity-item {
+        display: flex;
+        gap: 15px;
+        padding: 15px 0;
+        border-bottom: 1px solid var(--border-green);
+        position: relative;
+    }
+
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+
+    .activity-icon {
+        width: 36px;
+        height: 36px;
+        background: var(--info-gradient);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 14px;
+        flex-shrink: 0;
+        position: relative;
+        z-index: 1;
+    }
+
+    .activity-item:not(:last-child) .activity-icon::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 2px;
+        height: 30px;
+        background: var(--border-green);
+        z-index: -1;
+    }
+
+    .activity-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .activity-description {
+        font-size: 14px;
+        color: var(--text-dark);
+        font-weight: 500;
+        margin-bottom: 4px;
+    }
+
+    .activity-meta {
+        font-size: 12px;
+        color: var(--text-light);
+    }
+
+    .progress-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .progress-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    .progress-value {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--primary-dark);
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: var(--border-green);
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+        margin-top: 8px;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: var(--primary-gradient);
+        border-radius: var(--radius-sm);
+        transition: width 1s ease;
+    }
+
+    /* Action Buttons */
+    .action-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+    }
+
+    .action-btn {
+        background: var(--green-500);
+        color: white;
+        border: none;
+        padding: 16px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 48px;
+    }
+
+    .action-btn:hover {
+        background: var(--green-600);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+        color: white;
+        text-decoration: none;
+    }
+
+    .action-btn i {
+        font-size: 16px;
+    }
+
+    .export-dropdown-wrapper {
+        position: relative;
+    }
+
+    .export-dropdown {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        margin-bottom: 8px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: var(--shadow-lg);
+        min-width: 180px;
+        z-index: 1000;
+        border: 1px solid var(--card-border);
+        overflow: hidden;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.2s ease;
+    }
+
+    .export-dropdown.show {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .export-option {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        color: var(--text-primary);
+        text-decoration: none;
+        transition: all 0.2s ease;
+        font-weight: 500;
+        font-size: 14px;
+        background: transparent;
+        border: none;
+        width: 100%;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .export-option:hover {
+        background: var(--gray-50);
+        color: var(--text-primary);
+    }
+
+    .export-option i {
+        width: 16px;
+        text-align: center;
+        font-size: 14px;
+        color: var(--green-500);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .kpi-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .kpi-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .action-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .modern-table {
+            font-size: 12px;
+        }
+        
+        .card-body {
+            padding: 16px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .dashboard-container {
+            padding: 0 16px;
+        }
+        
+        .kpi-card {
+            padding: 16px;
+        }
+        
+        .kpi-value {
+            font-size: 24px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">Organization Overview</h1>
+        <p class="dashboard-subtitle">Monitor and manage your organization's key metrics and user activities</p>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <div class="kpi-title">Total Users</div>
+                <div class="kpi-icon"><i class="fas fa-users"></i></div>
+            </div>
+            <div class="kpi-value">{{ user_count }}</div>
+            <div class="kpi-change positive">
+                <i class="fas fa-arrow-up"></i>
+                {{ users_created_by_admin }} created by you
+            </div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <div class="kpi-title">Active Users</div>
+                <div class="kpi-icon"><i class="fas fa-user-check"></i></div>
+            </div>
+            <div class="kpi-value">{{ active_users }}</div>
+            <div class="kpi-change {% if inactive_users == 0 %}positive{% else %}neutral{% endif %}">
+                <i class="fas fa-{% if inactive_users == 0 %}check{% else %}info{% endif %}"></i>
+                {{ inactive_users }} inactive
+            </div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <div class="kpi-title">Recent Hires</div>
+                <div class="kpi-icon"><i class="fas fa-user-plus"></i></div>
+            </div>
+            <div class="kpi-value">{{ recent_hires }}</div>
+            <div class="kpi-change positive">
+                <i class="fas fa-calendar"></i>
+                Last 30 days
+            </div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <div class="kpi-title">Profile Completion</div>
+                <div class="kpi-icon"><i class="fas fa-chart-pie"></i></div>
+            </div>
+            <div class="kpi-value">{{ profile_completion_rate }}%</div>
+            <div class="kpi-change {% if profile_completion_rate >= 80 %}positive{% else %}neutral{% endif %}">
+                <i class="fas fa-{% if profile_completion_rate >= 80 %}check{% else %}clock{% endif %}"></i>
+                {% if profile_completion_rate >= 80 %}Excellent{% else %}Needs attention{% endif %}
+            </div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <div class="kpi-title">Monthly Logins</div>
+                <div class="kpi-icon"><i class="fas fa-sign-in-alt"></i></div>
+            </div>
+            <div class="kpi-value">{{ login_activities }}</div>
+            <div class="kpi-change positive">
+                <i class="fas fa-trending-up"></i>
+                User activity
+            </div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <div class="kpi-title">Documents</div>
+                <div class="kpi-icon"><i class="fas fa-file-alt"></i></div>
+            </div>
+            <div class="kpi-value">{{ total_documents }}</div>
+            <div class="kpi-change {% if pending_documents == 0 %}positive{% else %}neutral{% endif %}">
+                <i class="fas fa-shield-alt"></i>
+                {{ verified_documents }} verified
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Grid -->
+    <div class="content-grid">
+        <!-- Main Content Area -->
+        <div class="main-content-area">
+            <!-- Users Table -->
+            <div class="modern-card">
+                <div class="card-header">
+                    <h3 class="card-title">Organization Users ({{ user_count }})</h3>
+                </div>
+                <div class="card-body">
+                    {% if users %}
+                    <div style="overflow-x: auto;">
+                        <table class="modern-table">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Role</th>
+                                    <th>Department</th>
+                                    <th>Status</th>
+                                    <th>Joined</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td>
+                                        <div class="user-info">
+                                            <div class="user-avatar">
+                                                {{ user.first_name|first|upper|default:"U" }}{{ user.last_name|first|upper|default:"" }}
+                                            </div>
+                                            <div class="user-details">
+                                                <div class="user-name">{{ user.get_full_name|default:user.username }}</div>
+                                                <div class="user-meta">{{ user.email }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><span class="badge badge-info">{{ user.get_role_display }}</span></td>
+                                    <td>{{ user.department|default:"-" }}</td>
+                                    <td>
+                                        {% if user.is_active %}
+                                            <span class="badge badge-success">Active</span>
+                                        {% else %}
+                                            <span class="badge badge-warning">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <a href="{% url 'edit_user' user.id %}" class="btn-sm btn-outline" title="Edit User">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'reset_user_password' user.id %}" class="btn-sm btn-outline" title="Reset Password">
+                                                <i class="fas fa-key"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div style="text-align: center; padding: 60px 20px;">
+                        <i class="fas fa-users" style="font-size: 48px; color: var(--text-muted); margin-bottom: 16px;"></i>
+                        <h4 style="color: var(--text-secondary); margin-bottom: 8px; font-weight: 600;">No Users Yet</h4>
+                        <p style="color: var(--text-muted); margin-bottom: 24px;">Start building your team by adding your first user.</p>
+                        <a href="{% url 'add_user' %}" class="action-btn">
+                            <i class="fas fa-plus"></i>
+                            Add First User
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Content -->
+        <div class="sidebar-content">
+            <!-- Role Distribution -->
+            <div class="modern-card">
+                <div class="card-header">
+                    <h3 class="card-title">Role Distribution</h3>
+                </div>
+                <div class="card-body">
+                    {% if role_distribution %}
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        {% for role, count in role_distribution.items %}
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 500; color: var(--text-primary);">{{ role }}</span>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 60px; height: 6px; background: var(--gray-100); border-radius: 3px; overflow: hidden;">
+                                    <div style="width: {% widthratio count user_count 100 %}%; height: 100%; background: var(--green-500);"></div>
+                                </div>
+                                <span style="font-weight: 600; color: var(--text-primary); min-width: 20px;">{{ count }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div style="text-align: center; padding: 20px;">
+                        <i class="fas fa-chart-pie" style="font-size: 32px; color: var(--text-muted); margin-bottom: 8px;"></i>
+                        <p style="color: var(--text-muted); font-size: 14px;">No role data available</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Department Distribution -->
+            <div class="modern-card">
+                <div class="card-header">
+                    <h3 class="card-title">Departments</h3>
+                </div>
+                <div class="card-body">
+                    {% if dept_distribution %}
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        {% for dept, count in dept_distribution.items %}
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 500; color: var(--text-primary);">{{ dept|title }}</span>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 60px; height: 6px; background: var(--gray-100); border-radius: 3px; overflow: hidden;">
+                                    <div style="width: {% widthratio count user_count 100 %}%; height: 100%; background: var(--green-500);"></div>
+                                </div>
+                                <span style="font-weight: 600; color: var(--text-primary); min-width: 20px;">{{ count }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div style="text-align: center; padding: 20px;">
+                        <i class="fas fa-building" style="font-size: 32px; color: var(--text-muted); margin-bottom: 8px;"></i>
+                        <p style="color: var(--text-muted); font-size: 14px;">No department data available</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Users Needing Attention -->
+            <div class="modern-card">
+                <div class="card-header">
+                    <h3 class="card-title">Attention Required ({{ users_needing_attention|length }})</h3>
+                </div>
+                <div class="card-body">
+                    {% if users_needing_attention %}
+                    <div style="max-height: 300px; overflow-y: auto;">
+                        {% for item in users_needing_attention %}
+                        <div style="display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--card-border);">
+                            <div style="width: 32px; height: 32px; background: #f59e0b; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 12px; flex-shrink: 0;">
+                                {{ item.user.first_name|first|upper|default:"U" }}{{ item.user.last_name|first|upper|default:"" }}
+                            </div>
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-weight: 600; color: var(--text-primary); font-size: 14px; margin-bottom: 4px;">
+                                    {{ item.user.get_full_name|default:item.user.username }}
+                                </div>
+                                <ul style="list-style: none; margin: 0; padding: 0;">
+                                    {% for issue in item.issues %}
+                                    <li style="font-size: 12px; color: var(--text-secondary); margin-bottom: 2px; position: relative; padding-left: 12px;">
+                                        <span style="position: absolute; left: 0; color: #f59e0b;">•</span>
+                                        {{ issue }}
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div style="text-align: center; padding: 20px;">
+                        <i class="fas fa-check-circle" style="font-size: 32px; color: var(--green-500); margin-bottom: 8px;"></i>
+                        <p style="color: var(--text-muted); font-size: 14px;">All profiles are complete!</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Quick Actions -->
+    <div class="modern-card">
+        <div class="card-header">
+            <h3 class="card-title">Quick Actions</h3>
+        </div>
+        <div class="card-body">
+            <div class="action-grid">
+                <a href="{% url 'add_user' %}" class="action-btn">
+                    <i class="fas fa-user-plus"></i>
+                    Add New User
+                </a>
+
+                <div class="export-dropdown-wrapper">
+                    <button class="action-btn" id="exportBtn" type="button">
+                        <i class="fas fa-file-export"></i>
+                        Export Report
+                    </button>
+                    <div class="export-dropdown" id="exportDropdown">
+                        <a href="{% url 'export_org_admin_report' %}?format=csv" class="export-option">
+                            <i class="fas fa-file-csv"></i>
+                            <span>Export as CSV</span>
+                        </a>
+                        <a href="{% url 'export_org_admin_report' %}?format=pdf" class="export-option">
+                            <i class="fas fa-file-pdf"></i>
+                            <span>Export as PDF</span>
+                        </a>
+                    </div>
+                </div>
+
+                <a href="{% url 'settings' %}" class="action-btn">
+                    <i class="fas fa-cog"></i>
+                    Settings
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate progress bars
+    const progressBars = document.querySelectorAll('.progress-fill');
+    progressBars.forEach(bar => {
+        const width = bar.style.width;
+        bar.style.width = '0%';
+        setTimeout(() => {
+            bar.style.width = width;
+        }, 500);
+    });
+
+    // Animate stat numbers
+    const statNumbers = document.querySelectorAll('.stat-number');
+    statNumbers.forEach(stat => {
+        const finalValue = parseInt(stat.textContent);
+        if (isNaN(finalValue)) return;
+        
+        let currentValue = 0;
+        const increment = finalValue / 50;
+        const timer = setInterval(() => {
+            currentValue += increment;
+            if (currentValue >= finalValue) {
+                stat.textContent = finalValue;
+                clearInterval(timer);
+            } else {
+                stat.textContent = Math.floor(currentValue);
+            }
+        }, 30);
+    });
+
+    // Add hover effects to cards
+    const cards = document.querySelectorAll('.dashboard-card, .stat-card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+
+    // Export dropdown functionality
+    const exportBtn = document.getElementById('exportBtn');
+    const exportDropdown = document.getElementById('exportDropdown');
+    let isExportDropdownOpen = false;
+
+    if (exportBtn && exportDropdown) {
+        exportBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            isExportDropdownOpen = !isExportDropdownOpen;
+            exportDropdown.classList.toggle('show');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (isExportDropdownOpen && !exportBtn.contains(e.target) && !exportDropdown.contains(e.target)) {
+                isExportDropdownOpen = false;
+                exportDropdown.classList.remove('show');
+            }
+        });
+
+        // Close dropdown when pressing escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && isExportDropdownOpen) {
+                isExportDropdownOpen = false;
+                exportDropdown.classList.remove('show');
+            }
+        });
+    }
+
+    // Auto-refresh data every 5 minutes
+    setInterval(() => {
+        console.log('Auto-refreshing organization dashboard data...');
+    }, 300000);
+});
+</script>
+{% endblock %}

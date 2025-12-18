@@ -1,0 +1,471 @@
+{% extends 'base.html' %}
+
+{% block page_title_text %}Reports{% endblock %}
+{% block page_subtitle %}Generate and view vehicle movement reports{% endblock %}
+
+{% block content %}
+<style>
+    .reports-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .reports-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+        margin-bottom: 32px;
+    }
+
+    .report-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        transition: all 0.2s ease;
+    }
+
+    .report-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transform: translateY(-2px);
+    }
+
+    .report-icon {
+        width: 48px;
+        height: 48px;
+        background: #f0fdf4;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        color: #16a34a;
+        margin-bottom: 16px;
+    }
+
+    .report-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 8px;
+    }
+
+    .report-description {
+        font-size: 14px;
+        color: #6b7280;
+        margin-bottom: 20px;
+        line-height: 1.5;
+    }
+
+    .report-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn {
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background: #16a34a;
+        color: white;
+        border-color: #16a34a;
+    }
+
+    .btn-primary:hover {
+        background: #15803d;
+        border-color: #15803d;
+    }
+
+    .btn-secondary {
+        background: #f9fafb;
+        color: #374151;
+        border-color: #e5e7eb;
+    }
+
+    .btn-secondary:hover {
+        background: #f3f4f6;
+        border-color: #d1d5db;
+    }
+
+    .recent-reports {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .recent-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .recent-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #111827;
+        margin: 0;
+    }
+
+    .reports-list {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .report-item {
+        padding: 16px 24px;
+        border-bottom: 1px solid #f3f4f6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background 0.15s ease;
+    }
+
+    .report-item:hover {
+        background: #f9fafb;
+    }
+
+    .report-item:last-child {
+        border-bottom: none;
+    }
+
+    .report-info {
+        flex: 1;
+    }
+
+    .report-name {
+        font-size: 14px;
+        font-weight: 500;
+        color: #111827;
+        margin-bottom: 4px;
+    }
+
+    .report-date {
+        font-size: 12px;
+        color: #9ca3af;
+    }
+
+    .report-download {
+        color: #16a34a;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .report-download:hover {
+        color: #15803d;
+    }
+
+    .empty-state {
+        padding: 48px 24px;
+        text-align: center;
+        color: #9ca3af;
+    }
+
+    .empty-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.3;
+    }
+
+    @media (max-width: 768px) {
+        .reports-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .report-actions {
+            flex-direction: column;
+        }
+
+        .report-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+    }
+</style>
+
+<div class="reports-container">
+    <!-- Report Types -->
+    <div class="reports-grid">
+        <div class="report-card">
+            <div class="report-icon">📊</div>
+            <h3 class="report-title">Movement Summary</h3>
+            <p class="report-description">
+                Comprehensive overview of vehicle movements, including distance traveled, time spent, and route efficiency.
+            </p>
+            <div class="report-actions">
+                <button class="btn btn-primary" onclick="generateReport('movement_summary')">
+                    <i class="fas fa-chart-line"></i>
+                    Generate Report
+                </button>
+                <button class="btn btn-secondary" onclick="previewReport('movement_summary')">
+                    <i class="fas fa-eye"></i>
+                    Preview
+                </button>
+            </div>
+        </div>
+
+        <div class="report-card">
+            <div class="report-icon">🗺️</div>
+            <h3 class="report-title">Route Analysis</h3>
+            <p class="report-description">
+                Detailed analysis of routes taken, including most frequent paths, traffic patterns, and optimization suggestions.
+            </p>
+            <div class="report-actions">
+                <button class="btn btn-primary" onclick="generateReport('route_analysis')">
+                    <i class="fas fa-route"></i>
+                    Generate Report
+                </button>
+                <button class="btn btn-secondary" onclick="previewReport('route_analysis')">
+                    <i class="fas fa-eye"></i>
+                    Preview
+                </button>
+            </div>
+        </div>
+
+        <div class="report-card">
+            <div class="report-icon">⛽</div>
+            <h3 class="report-title">Fuel Consumption</h3>
+            <p class="report-description">
+                Track fuel usage patterns, efficiency metrics, and cost analysis to optimize vehicle performance.
+            </p>
+            <div class="report-actions">
+                <button class="btn btn-primary" onclick="generateReport('fuel_consumption')">
+                    <i class="fas fa-gas-pump"></i>
+                    Generate Report
+                </button>
+                <button class="btn btn-secondary" onclick="previewReport('fuel_consumption')">
+                    <i class="fas fa-eye"></i>
+                    Preview
+                </button>
+            </div>
+        </div>
+
+        <div class="report-card">
+            <div class="report-icon">📅</div>
+            <h3 class="report-title">Weekly Summary</h3>
+            <p class="report-description">
+                Weekly breakdown of vehicle usage, including daily patterns, peak hours, and activity summaries.
+            </p>
+            <div class="report-actions">
+                <button class="btn btn-primary" onclick="generateReport('weekly_summary')">
+                    <i class="fas fa-calendar-week"></i>
+                    Generate Report
+                </button>
+                <button class="btn btn-secondary" onclick="previewReport('weekly_summary')">
+                    <i class="fas fa-eye"></i>
+                    Preview
+                </button>
+            </div>
+        </div>
+
+        <div class="report-card">
+            <div class="report-icon">🎯</div>
+            <h3 class="report-title">Performance Metrics</h3>
+            <p class="report-description">
+                Key performance indicators including average speed, idle time, and efficiency ratings.
+            </p>
+            <div class="report-actions">
+                <button class="btn btn-primary" onclick="generateReport('performance_metrics')">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Generate Report
+                </button>
+                <button class="btn btn-secondary" onclick="previewReport('performance_metrics')">
+                    <i class="fas fa-eye"></i>
+                    Preview
+                </button>
+            </div>
+        </div>
+
+        <div class="report-card">
+            <div class="report-icon">📍</div>
+            <h3 class="report-title">Location History</h3>
+            <p class="report-description">
+                Complete history of vehicle locations with timestamps, duration at each location, and frequency analysis.
+            </p>
+            <div class="report-actions">
+                <button class="btn btn-primary" onclick="generateReport('location_history')">
+                    <i class="fas fa-map-marker-alt"></i>
+                    Generate Report
+                </button>
+                <button class="btn btn-secondary" onclick="previewReport('location_history')">
+                    <i class="fas fa-eye"></i>
+                    Preview
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Reports -->
+    <div class="recent-reports">
+        <div class="recent-header">
+            <h2 class="recent-title">Recent Reports</h2>
+        </div>
+        <div class="reports-list">
+            <div class="report-item">
+                <div class="report-info">
+                    <div class="report-name">Movement Summary - December 2024</div>
+                    <div class="report-date">Generated on Dec 18, 2024 at 2:30 PM</div>
+                </div>
+                <a href="#" class="report-download">
+                    <i class="fas fa-download"></i>
+                    Download
+                </a>
+            </div>
+
+            <div class="report-item">
+                <div class="report-info">
+                    <div class="report-name">Weekly Summary - Week 50</div>
+                    <div class="report-date">Generated on Dec 15, 2024 at 9:15 AM</div>
+                </div>
+                <a href="#" class="report-download">
+                    <i class="fas fa-download"></i>
+                    Download
+                </a>
+            </div>
+
+            <div class="report-item">
+                <div class="report-info">
+                    <div class="report-name">Fuel Consumption - November 2024</div>
+                    <div class="report-date">Generated on Dec 1, 2024 at 4:45 PM</div>
+                </div>
+                <a href="#" class="report-download">
+                    <i class="fas fa-download"></i>
+                    Download
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function generateReport(reportType) {
+        // Show loading state
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+        button.disabled = true;
+
+        // Generate and download PDF report
+        window.location.href = `/reports/generate/${reportType}/`;
+        
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+            
+            // Show success message
+            showToast(`${getReportTitle(reportType)} PDF downloaded successfully!`, 'success');
+            
+            // Add to recent reports
+            addToRecentReports(reportType);
+        }, 1000);
+    }
+
+    function previewReport(reportType) {
+        showToast(`Opening preview for ${getReportTitle(reportType)}...`, 'info');
+        
+        // In a real application, this would open a modal or new page with report preview
+        setTimeout(() => {
+            alert(`Preview for ${getReportTitle(reportType)} would open here`);
+        }, 500);
+    }
+
+    function getReportTitle(reportType) {
+        const titles = {
+            'movement_summary': 'Movement Summary',
+            'route_analysis': 'Route Analysis',
+            'fuel_consumption': 'Fuel Consumption',
+            'weekly_summary': 'Weekly Summary',
+            'performance_metrics': 'Performance Metrics',
+            'location_history': 'Location History'
+        };
+        return titles[reportType] || 'Report';
+    }
+
+    function addToRecentReports(reportType) {
+        const reportsList = document.querySelector('.reports-list');
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric' 
+        });
+        const timeStr = now.toLocaleTimeString('en-US', { 
+            hour: 'numeric', 
+            minute: '2-digit',
+            hour12: true 
+        });
+
+        const newReport = document.createElement('div');
+        newReport.className = 'report-item';
+        newReport.innerHTML = `
+            <div class="report-info">
+                <div class="report-name">${getReportTitle(reportType)} - ${dateStr}</div>
+                <div class="report-date">Generated on ${dateStr} at ${timeStr}</div>
+            </div>
+            <a href="#" class="report-download">
+                <i class="fas fa-download"></i>
+                Download
+            </a>
+        `;
+
+        reportsList.insertBefore(newReport, reportsList.firstChild);
+    }
+
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#16a34a' : type === 'error' ? '#dc2626' : '#3b82f6'};
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 9999;
+            font-size: 14px;
+            font-weight: 500;
+            animation: slideIn 0.3s ease;
+        `;
+        toast.textContent = message;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    // Add CSS animations
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+{% endblock %}

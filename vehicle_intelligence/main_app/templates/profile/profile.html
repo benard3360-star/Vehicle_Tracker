@@ -1,0 +1,933 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block page_title_text %}My Profile{% endblock %}
+{% block page_subtitle %}Manage your account information and settings{% endblock %}
+
+{% block content %}
+<style>
+    /* Modern Profile Styles */
+    .profile-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Profile Header - Clean & Modern */
+    .profile-header {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 32px;
+        margin-bottom: 32px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .header-content {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+    }
+
+    .profile-avatar {
+        width: 96px;
+        height: 96px;
+        border-radius: 50%;
+        background: #f3f4f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+        font-weight: 700;
+        color: #6b7280;
+        border: 3px solid #e5e7eb;
+        position: relative;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+
+    .profile-avatar.has-image {
+        background: #16a34a;
+        color: white;
+    }
+
+    .profile-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .avatar-upload {
+        position: absolute;
+        bottom: -2px;
+        right: -2px;
+        width: 32px;
+        height: 32px;
+        background: #16a34a;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        cursor: pointer;
+        border: 2px solid white;
+        font-size: 14px;
+        transition: all 0.2s ease;
+    }
+
+    .avatar-upload:hover {
+        background: #15803d;
+        transform: scale(1.1);
+    }
+
+    .profile-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .profile-name {
+        font-size: 28px;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .role-badge {
+        padding: 4px 12px;
+        background: #f0fdf4;
+        color: #16a34a;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        border: 1px solid #bbf7d0;
+    }
+
+    .profile-title {
+        font-size: 16px;
+        color: #6b7280;
+        margin-bottom: 16px;
+    }
+
+    .profile-meta {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: #6b7280;
+    }
+
+    .meta-item i {
+        color: #16a34a;
+        width: 16px;
+    }
+
+    .profile-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    .btn {
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background: #16a34a;
+        color: white;
+        border-color: #16a34a;
+    }
+
+    .btn-primary:hover {
+        background: #15803d;
+        border-color: #15803d;
+    }
+
+    .btn-secondary {
+        background: #f9fafb;
+        color: #374151;
+        border-color: #e5e7eb;
+    }
+
+    .btn-secondary:hover {
+        background: #f3f4f6;
+        border-color: #d1d5db;
+    }
+
+    /* Profile Content Grid */
+    .profile-content {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 32px;
+    }
+
+    /* Sidebar Navigation */
+    .profile-sidebar {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 24px;
+        height: fit-content;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .sidebar-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .profile-nav {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .nav-item {
+        margin-bottom: 4px;
+    }
+
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        color: #6b7280;
+        text-decoration: none;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        font-weight: 500;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+        background: #f0fdf4;
+        color: #16a34a;
+    }
+
+    .nav-link i {
+        width: 20px;
+        text-align: center;
+        font-size: 16px;
+    }
+
+    /* Main Content */
+    .profile-main {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
+
+    .content-header {
+        padding: 24px 32px;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .content-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #111827;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .content-title i {
+        color: #16a34a;
+    }
+
+    .content-body {
+        padding: 32px;
+    }
+
+    /* Information Grid */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 32px;
+    }
+
+    .info-section {
+        margin-bottom: 32px;
+    }
+
+    .section-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 20px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .info-group {
+        margin-bottom: 20px;
+    }
+
+    .info-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+    }
+
+    .info-value {
+        font-size: 14px;
+        color: #111827;
+        font-weight: 500;
+        padding: 8px 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .info-value.empty {
+        color: #9ca3af;
+        font-style: italic;
+    }
+
+    .info-value a {
+        color: #16a34a;
+        text-decoration: none;
+    }
+
+    .info-value a:hover {
+        text-decoration: underline;
+    }
+
+    /* Stats Cards */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+
+    .stat-card {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 16px;
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #16a34a;
+        margin-bottom: 4px;
+    }
+
+    .stat-label {
+        font-size: 12px;
+        color: #6b7280;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Activity Timeline */
+    .activity-list {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .activity-item {
+        padding: 16px 0;
+        border-bottom: 1px solid #f3f4f6;
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        background: #f0fdf4;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 16px;
+        color: #16a34a;
+    }
+
+    .activity-details {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .activity-description {
+        font-size: 14px;
+        font-weight: 500;
+        color: #111827;
+        margin-bottom: 4px;
+    }
+
+    .activity-meta {
+        font-size: 12px;
+        color: #9ca3af;
+        display: flex;
+        gap: 12px;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 48px 24px;
+        color: #9ca3af;
+    }
+
+    .empty-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.3;
+    }
+
+    .empty-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #6b7280;
+    }
+
+    .empty-description {
+        font-size: 14px;
+        margin-bottom: 24px;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+        .profile-content {
+            grid-template-columns: 1fr;
+        }
+
+        .header-content {
+            flex-direction: column;
+            text-align: center;
+            gap: 20px;
+        }
+
+        .profile-meta {
+            justify-content: center;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .profile-header {
+            padding: 24px;
+        }
+
+        .content-header {
+            padding: 20px 24px;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .content-body {
+            padding: 24px;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .profile-actions {
+            flex-direction: column;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 480px) {
+        .profile-header {
+            padding: 20px;
+        }
+
+        .profile-name {
+            font-size: 24px;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .profile-meta {
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="profile-container">
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="header-content">
+            <div class="profile-avatar {% if profile.profile_picture %}has-image{% endif %}">
+                {% if profile.profile_picture %}
+                    <img src="{{ profile.profile_picture.url }}" alt="{{ user.get_full_name }}">
+                {% else %}
+                    {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+                {% endif %}
+                <div class="avatar-upload" onclick="uploadAvatar()">
+                    <i class="fas fa-camera"></i>
+                </div>
+            </div>
+            
+            <div class="profile-info">
+                <h1 class="profile-name">
+                    {{ user.get_full_name|default:user.username }}
+                    <span class="role-badge">{{ user.get_role_display }}</span>
+                </h1>
+                
+                <div class="profile-title">
+                    {{ user.job_title|default:"Employee" }}{% if user.department %} • {{ user.department }}{% endif %}
+                </div>
+                
+                <div class="profile-meta">
+                    <div class="meta-item">
+                        <i class="fas fa-envelope"></i>
+                        <span>{{ user.email }}</span>
+                    </div>
+                    
+                    {% if user.phone %}
+                    <div class="meta-item">
+                        <i class="fas fa-phone"></i>
+                        <span>{{ user.phone }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if user.organization %}
+                    <div class="meta-item">
+                        <i class="fas fa-building"></i>
+                        <span>{{ user.organization.name }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="meta-item">
+                        <i class="fas fa-calendar"></i>
+                        <span>Joined {{ user.date_joined|date:"M Y" }}</span>
+                    </div>
+                </div>
+                
+                <div class="profile-actions">
+                    <a href="{% url 'edit_profile' %}" class="btn btn-primary">
+                        <i class="fas fa-edit"></i>
+                        Edit Profile
+                    </a>
+                    <button onclick="exportData()" class="btn btn-secondary">
+                        <i class="fas fa-download"></i>
+                        Export Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">{{ documents|length }}</div>
+            <div class="stat-label">Documents</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ unread_notifications }}</div>
+            <div class="stat-label">Notifications</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ recent_activities|length }}</div>
+            <div class="stat-label">Activities</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{% if profile.two_factor_enabled %}ON{% else %}OFF{% endif %}</div>
+            <div class="stat-label">2FA Status</div>
+        </div>
+    </div>
+    
+    <!-- Profile Content -->
+    <div class="profile-content">
+        <!-- Sidebar Navigation -->
+        <div class="profile-sidebar">
+            <h3 class="sidebar-title">Profile Sections</h3>
+            <ul class="profile-nav">
+                <li class="nav-item">
+                    <a href="#personal-info" class="nav-link active" onclick="showSection('personal-info', this)">
+                        <i class="fas fa-user"></i>
+                        <span>Personal Info</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#documents" class="nav-link" onclick="showSection('documents', this)">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Documents</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#activity" class="nav-link" onclick="showSection('activity', this)">
+                        <i class="fas fa-history"></i>
+                        <span>Recent Activity</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#security" class="nav-link" onclick="showSection('security', this)">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Security</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="profile-main">
+            <!-- Personal Information Section -->
+            <div id="personal-info-section" class="content-section">
+                <div class="content-header">
+                    <h2 class="content-title">
+                        <i class="fas fa-user"></i>
+                        Personal Information
+                    </h2>
+                    <a href="{% url 'edit_profile' %}" class="btn btn-primary">
+                        <i class="fas fa-edit"></i>
+                        Edit Information
+                    </a>
+                </div>
+                <div class="content-body">
+                    <div class="info-grid">
+                        <div class="info-column">
+                            <div class="info-section">
+                                <h3 class="section-title">Basic Information</h3>
+                                
+                                <div class="info-group">
+                                    <label class="info-label">Full Name</label>
+                                    <div class="info-value">{{ user.get_full_name|default:"Not set" }}</div>
+                                </div>
+                                
+                                <div class="info-group">
+                                    <label class="info-label">Email Address</label>
+                                    <div class="info-value">{{ user.email|default:"Not set" }}</div>
+                                </div>
+                                
+                                <div class="info-group">
+                                    <label class="info-label">Phone Number</label>
+                                    <div class="info-value">{{ user.phone|default:"Not set" }}</div>
+                                </div>
+                                
+                                <div class="info-group">
+                                    <label class="info-label">Date of Birth</label>
+                                    <div class="info-value">{{ profile.date_of_birth|date:"F d, Y"|default:"Not set" }}</div>
+                                </div>
+                                
+                                <div class="info-group">
+                                    <label class="info-label">Gender</label>
+                                    <div class="info-value">{{ profile.get_gender_display|default:"Not set" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="info-column">
+                            <div class="info-section">
+                                <h3 class="section-title">Work Information</h3>
+                                
+                                <div class="info-group">
+                                    <label class="info-label">Job Title</label>
+                                    <div class="info-value">{{ user.job_title|default:"Not set" }}</div>
+                                </div>
+                                
+                                <div class="info-group">
+                                    <label class="info-label">Department</label>
+                                    <div class="info-value">{{ user.department|default:"Not set" }}</div>
+                                </div>
+                                
+                                <div class="info-group">
+                                    <label class="info-label">Employee ID</label>
+                                    <div class="info-value">{{ profile.employee_id|default:"Not set" }}</div>
+                                </div>
+                                
+                                <div class="info-group">
+                                    <label class="info-label">Organization</label>
+                                    <div class="info-value">{{ user.organization.name|default:"Not set" }}</div>
+                                </div>
+                                
+                                <div class="info-group">
+                                    <label class="info-label">Join Date</label>
+                                    <div class="info-value">{{ user.date_joined|date:"F d, Y" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h3 class="section-title">Contact Information</h3>
+                        <div class="info-grid">
+                            <div class="info-column">
+                                <div class="info-group">
+                                    <label class="info-label">Address</label>
+                                    <div class="info-value">
+                                        {% if profile.get_full_address %}
+                                            {{ profile.get_full_address }}
+                                        {% else %}
+                                            <span class="empty">No address provided</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="info-group">
+                                    <label class="info-label">Emergency Contact</label>
+                                    <div class="info-value">{{ profile.emergency_contact|default:"Not set" }}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="info-column">
+                                <div class="info-group">
+                                    <label class="info-label">LinkedIn</label>
+                                    <div class="info-value">
+                                        {% if profile.linkedin_url %}
+                                            <a href="{{ profile.linkedin_url }}" target="_blank">{{ profile.linkedin_url }}</a>
+                                        {% else %}
+                                            <span class="empty">Not provided</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="info-group">
+                                    <label class="info-label">Personal Website</label>
+                                    <div class="info-value">
+                                        {% if profile.personal_website %}
+                                            <a href="{{ profile.personal_website }}" target="_blank">{{ profile.personal_website }}</a>
+                                        {% else %}
+                                            <span class="empty">Not provided</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Documents Section -->
+            <div id="documents-section" class="content-section" style="display: none;">
+                <div class="content-header">
+                    <h2 class="content-title">
+                        <i class="fas fa-file-alt"></i>
+                        Documents
+                    </h2>
+                    <button class="btn btn-primary" onclick="uploadDocument()">
+                        <i class="fas fa-upload"></i>
+                        Upload Document
+                    </button>
+                </div>
+                <div class="content-body">
+                    {% if documents %}
+                        <div class="documents-grid">
+                            {% for document in documents %}
+                                <div class="document-card">
+                                    <div class="document-icon">
+                                        <i class="fas fa-file"></i>
+                                    </div>
+                                    <div class="document-name">{{ document.name }}</div>
+                                    <div class="document-meta">
+                                        <span>{{ document.get_document_type_display }}</span>
+                                        <span>{{ document.uploaded_at|date:"M d, Y" }}</span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-icon">📄</div>
+                            <div class="empty-title">No documents uploaded</div>
+                            <div class="empty-description">Upload your first document to get started</div>
+                            <button class="btn btn-primary" onclick="uploadDocument()">
+                                <i class="fas fa-upload"></i>
+                                Upload Document
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Activity Section -->
+            <div id="activity-section" class="content-section" style="display: none;">
+                <div class="content-header">
+                    <h2 class="content-title">
+                        <i class="fas fa-history"></i>
+                        Recent Activity
+                    </h2>
+                </div>
+                <div class="content-body">
+                    {% if recent_activities %}
+                        <div class="activity-list">
+                            {% for activity in recent_activities %}
+                                <div class="activity-item">
+                                    <div class="activity-icon">
+                                        {% if activity.action == 'login' %}🔐
+                                        {% elif activity.action == 'logout' %}🚪
+                                        {% elif activity.action == 'create' %}➕
+                                        {% elif activity.action == 'update' %}✏️
+                                        {% elif activity.action == 'delete' %}🗑️
+                                        {% else %}👁️{% endif %}
+                                    </div>
+                                    <div class="activity-details">
+                                        <div class="activity-description">{{ activity.description }}</div>
+                                        <div class="activity-meta">
+                                            <span>{{ activity.timestamp|timesince }} ago</span>
+                                            <span>{{ activity.module|title }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-icon">📝</div>
+                            <div class="empty-title">No recent activity</div>
+                            <div class="empty-description">Your activities will appear here as you use the system</div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Security Section -->
+            <div id="security-section" class="content-section" style="display: none;">
+                <div class="content-header">
+                    <h2 class="content-title">
+                        <i class="fas fa-shield-alt"></i>
+                        Security Settings
+                    </h2>
+                </div>
+                <div class="content-body">
+                    <div class="info-section">
+                        <h3 class="section-title">Account Security</h3>
+                        
+                        <div class="info-group">
+                            <label class="info-label">Password</label>
+                            <div class="info-value">
+                                Last changed: {{ profile.last_password_change|date:"M d, Y"|default:"Never" }}
+                                <a href="{% url 'change_password' %}" class="btn btn-secondary" style="margin-left: 16px;">
+                                    <i class="fas fa-key"></i>
+                                    Change Password
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div class="info-group">
+                            <label class="info-label">Two-Factor Authentication</label>
+                            <div class="info-value">
+                                Status: {% if profile.two_factor_enabled %}Enabled{% else %}Disabled{% endif %}
+                                <button class="btn btn-secondary" style="margin-left: 16px;" onclick="toggleTwoFactor()">
+                                    <i class="fas fa-shield-alt"></i>
+                                    {% if profile.two_factor_enabled %}Disable{% else %}Enable{% endif %} 2FA
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="info-group">
+                            <label class="info-label">Login Sessions</label>
+                            <div class="info-value">
+                                Manage your active login sessions
+                                <button class="btn btn-secondary" style="margin-left: 16px;" onclick="viewSessions()">
+                                    <i class="fas fa-list"></i>
+                                    View Sessions
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Section Navigation
+    function showSection(sectionId, linkElement) {
+        // Hide all sections
+        document.querySelectorAll('.content-section').forEach(section => {
+            section.style.display = 'none';
+        });
+        
+        // Show selected section
+        document.getElementById(sectionId + '-section').style.display = 'block';
+        
+        // Update active nav link
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.classList.remove('active');
+        });
+        linkElement.classList.add('active');
+        
+        // Update URL hash
+        window.history.replaceState(null, null, `#${sectionId}`);
+    }
+
+    // Initialize section based on URL hash
+    document.addEventListener('DOMContentLoaded', function() {
+        const hash = window.location.hash.substring(1);
+        if (hash && document.getElementById(hash + '-section')) {
+            const navLink = document.querySelector(`[onclick*="${hash}"]`);
+            if (navLink) {
+                showSection(hash, navLink);
+            }
+        }
+    });
+
+    // Placeholder functions for actions
+    function uploadAvatar() {
+        alert('Avatar upload functionality would be implemented here');
+    }
+
+    function exportData() {
+        alert('Data export functionality would be implemented here');
+    }
+
+    function uploadDocument() {
+        alert('Document upload functionality would be implemented here');
+    }
+
+    function toggleTwoFactor() {
+        alert('Two-factor authentication toggle would be implemented here');
+    }
+
+    function viewSessions() {
+        alert('Session management would be implemented here');
+    }
+</script>
+{% endblock %}
