@@ -3,3 +3,10 @@ Django==5.2.9
 sqlparse==0.5.4
 tzdata==2025.3
 reportlab==4.0.9
+psycopg2-binary==2.9.9
+pandas==2.1.4
+numpy==1.24.4
+plotly==5.17.0
+django-environ==0.11.2
+openpyxl==3.1.2
+xlrd==2.0.1

@@ -1,0 +1,560 @@
+{% extends 'base.html' %}
+
+{% block title %}Analytics Dashboard - Vehicle Intelligence System{% endblock %}
+
+{% block page_title_text %}Analytics Dashboard{% endblock %}
+{% block page_subtitle %}Real-time vehicle fleet analytics and insights{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analytics-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .analytics-header {
+        margin-bottom: 32px;
+    }
+
+    .analytics-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 8px;
+    }
+
+    .analytics-subtitle {
+        font-size: 16px;
+        color: #6b7280;
+    }
+
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 24px;
+        margin-bottom: 40px;
+    }
+
+    .metric-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 24px;
+        transition: all 0.2s ease;
+    }
+
+    .metric-card:hover {
+        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        transform: translateY(-2px);
+    }
+
+    .metric-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+    }
+
+    .metric-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .metric-icon {
+        width: 40px;
+        height: 40px;
+        background: #f0fdf4;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #16a34a;
+        font-size: 18px;
+    }
+
+    .metric-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 8px;
+        line-height: 1;
+    }
+
+    .metric-unit {
+        font-size: 14px;
+        color: #6b7280;
+        font-weight: 500;
+    }
+
+    .charts-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 32px;
+        margin-bottom: 40px;
+    }
+
+    .chart-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .chart-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid #e5e7eb;
+        background: #f9fafb;
+    }
+
+    .chart-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #111827;
+        margin: 0;
+    }
+
+    .chart-body {
+        padding: 24px;
+    }
+
+    .data-table {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 32px;
+    }
+
+    .table-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid #e5e7eb;
+        background: #f9fafb;
+    }
+
+    .table-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #111827;
+        margin: 0;
+    }
+
+    .modern-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .modern-table th {
+        background: #f9fafb;
+        padding: 12px 16px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 14px;
+        color: #6b7280;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .modern-table td {
+        padding: 16px;
+        border-bottom: 1px solid #e5e7eb;
+        font-size: 14px;
+        color: #111827;
+    }
+
+    .modern-table tr:hover {
+        background: #f9fafb;
+    }
+
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        line-height: 1;
+    }
+
+    .badge-success {
+        background: #dcfce7;
+        color: #16a34a;
+    }
+
+    .badge-info {
+        background: #dbeafe;
+        color: #2563eb;
+    }
+
+    .loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 60px;
+        color: #6b7280;
+    }
+
+    .no-data {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6b7280;
+    }
+
+    @media (max-width: 1024px) {
+        .charts-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .metrics-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .metrics-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .modern-table {
+            font-size: 12px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="analytics-container">
+    <!-- Analytics Header -->
+    <div class="analytics-header">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div>
+                <h1 class="analytics-title">Fleet Analytics</h1>
+                <p class="analytics-subtitle">Comprehensive insights into your vehicle fleet performance and utilization</p>
+            </div>
+            {% if is_super_admin and available_organizations %}
+            <div style="min-width: 250px;">
+                <label for="organizationFilter" style="display: block; font-size: 14px; font-weight: 500; color: #6b7280; margin-bottom: 4px;">Filter by Organization</label>
+                <select id="organizationFilter" onchange="filterByOrganization()" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 14px; background: white;">
+                    <option value="">All Organizations</option>
+                    {% for org in available_organizations %}
+                    <option value="{{ org.id }}" {% if selected_organization and selected_organization.id == org.id %}selected{% endif %}>
+                        {{ org.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-header">
+                <div class="metric-title">Total Vehicles</div>
+                <div class="metric-icon"><i class="fas fa-car"></i></div>
+            </div>
+            <div class="metric-value">{{ fleet_summary.total_vehicles }}</div>
+            <div class="metric-unit">Active Fleet</div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-header">
+                <div class="metric-title">Active Vehicles</div>
+                <div class="metric-icon"><i class="fas fa-car-side"></i></div>
+            </div>
+            <div class="metric-value">{{ fleet_summary.active_vehicles }}</div>
+            <div class="metric-unit">In Use</div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-header">
+                <div class="metric-title">Utilization Rate</div>
+                <div class="metric-icon"><i class="fas fa-chart-line"></i></div>
+            </div>
+            <div class="metric-value">{{ fleet_summary.utilization_rate|floatformat:1 }}%</div>
+            <div class="metric-unit">Fleet Usage</div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-header">
+                <div class="metric-title">Avg Parking Duration</div>
+                <div class="metric-icon"><i class="fas fa-clock"></i></div>
+            </div>
+            <div class="metric-value">{{ fleet_summary.avg_parking_duration|floatformat:0 }}</div>
+            <div class="metric-unit">Minutes</div>
+        </div>
+
+
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-grid">
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3 class="chart-title">Daily Trip Trends</h3>
+            </div>
+            <div class="chart-body">
+                {% if daily_trips_chart %}
+                    <div id="dailyTripsChart"></div>
+                {% else %}
+                    <div class="no-data">
+                        <i class="fas fa-chart-line" style="font-size: 48px; margin-bottom: 16px;"></i>
+                        <p>No trip data available for the selected period</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3 class="chart-title">Parking Duration Analysis</h3>
+            </div>
+            <div class="chart-body">
+                {% if parking_duration_chart %}
+                    <div id="parkingDurationChart"></div>
+                {% else %}
+                    <div class="no-data">
+                        <i class="fas fa-clock" style="font-size: 48px; margin-bottom: 16px;"></i>
+                        <p>No parking duration data available</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3 class="chart-title">Hourly Vehicle Entries</h3>
+            </div>
+            <div class="chart-body">
+                {% if hourly_entries_chart %}
+                    <div id="hourlyEntriesChart"></div>
+                {% else %}
+                    <div class="no-data">
+                        <i class="fas fa-clock" style="font-size: 48px; margin-bottom: 16px;"></i>
+                        <p>No hourly entry data available</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3 class="chart-title">Vehicles per Organization</h3>
+            </div>
+            <div class="chart-body">
+                {% if vehicles_per_site_chart %}
+                    <div id="vehiclesPerSiteChart"></div>
+                {% else %}
+                    <div class="no-data">
+                        <i class="fas fa-building" style="font-size: 48px; margin-bottom: 16px;"></i>
+                        <p>No vehicle distribution data available</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3 class="chart-title">Revenue per Organization</h3>
+            </div>
+            <div class="chart-body">
+                {% if revenue_per_site_chart %}
+                    <div id="revenuePerSiteChart"></div>
+                {% else %}
+                    <div class="no-data">
+                        <i class="fas fa-money-bill-wave" style="font-size: 48px; margin-bottom: 16px;"></i>
+                        <p>No revenue data available</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3 class="chart-title">Vehicle Visit Patterns</h3>
+            </div>
+            <div class="chart-body">
+                {% if visit_patterns_chart %}
+                    <div id="visitPatternsChart"></div>
+                {% else %}
+                    <div class="no-data">
+                        <i class="fas fa-chart-bar" style="font-size: 48px; margin-bottom: 16px;"></i>
+                        <p>No visit pattern data available</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3 class="chart-title">Average Stay by Vehicle Type</h3>
+            </div>
+            <div class="chart-body">
+                {% if avg_stay_by_type_chart %}
+                    <div id="avgStayByTypeChart"></div>
+                {% else %}
+                    <div class="no-data">
+                        <i class="fas fa-clock" style="font-size: 48px; margin-bottom: 16px;"></i>
+                        <p>No stay duration data available</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3 class="chart-title">Vehicle Movement Flow</h3>
+            </div>
+            <div class="chart-body">
+                {% if movement_flow_chart %}
+                    <div id="movementFlowChart"></div>
+                {% else %}
+                    <div class="no-data">
+                        <i class="fas fa-project-diagram" style="font-size: 48px; margin-bottom: 16px;"></i>
+                        <p>No movement flow data available</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Driver Performance Table -->
+    {% if driver_performance %}
+    <div class="data-table">
+        <div class="table-header">
+            <h3 class="table-title">Driver Performance (Last 30 Days)</h3>
+        </div>
+        <div style="overflow-x: auto;">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>Driver</th>
+                        <th>Total Trips</th>
+                        <th>Distance (KM)</th>
+                        <th>Avg Speed (KM/H)</th>
+                        <th>Fuel Efficiency</th>
+                        <th>Performance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for driver in driver_performance %}
+                    <tr>
+                        <td>{{ driver.driver_name }}</td>
+                        <td>{{ driver.total_trips }}</td>
+                        <td>{{ driver.total_distance|floatformat:1 }}</td>
+                        <td>{{ driver.avg_speed|floatformat:1 }}</td>
+                        <td>{{ driver.fuel_efficiency|floatformat:2 }} KM/L</td>
+                        <td>
+                            {% if driver.fuel_efficiency > 10 %}
+                                <span class="badge badge-success">Excellent</span>
+                            {% else %}
+                                <span class="badge badge-info">Good</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Route Analysis Table -->
+    {% if route_analysis %}
+    <div class="data-table">
+        <div class="table-header">
+            <h3 class="table-title">Most Frequent Routes</h3>
+        </div>
+        <div style="overflow-x: auto;">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>Route</th>
+                        <th>Frequency</th>
+                        <th>Avg Distance (KM)</th>
+                        <th>Avg Duration (Min)</th>
+                        <th>Total Fuel (L)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for route in route_analysis %}
+                    <tr>
+                        <td>{{ route.route }}</td>
+                        <td>{{ route.frequency }}</td>
+                        <td>{{ route.avg_distance|floatformat:1 }}</td>
+                        <td>{{ route.avg_duration|floatformat:0 }}</td>
+                        <td>{{ route.total_fuel|floatformat:1 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    // Render charts
+    {% if daily_trips_chart %}
+    var dailyTripsData = {{ daily_trips_chart|safe }};
+    Plotly.newPlot('dailyTripsChart', dailyTripsData.data, dailyTripsData.layout, {responsive: true});
+    {% endif %}
+
+    {% if parking_duration_chart %}
+    var parkingDurationData = {{ parking_duration_chart|safe }};
+    Plotly.newPlot('parkingDurationChart', parkingDurationData.data, parkingDurationData.layout, {responsive: true});
+    {% endif %}
+    
+    {% if hourly_entries_chart %}
+    var hourlyEntriesData = {{ hourly_entries_chart|safe }};
+    Plotly.newPlot('hourlyEntriesChart', hourlyEntriesData.data, hourlyEntriesData.layout, {responsive: true});
+    {% endif %}
+    
+    {% if vehicles_per_site_chart %}
+    var vehiclesPerSiteData = {{ vehicles_per_site_chart|safe }};
+    Plotly.newPlot('vehiclesPerSiteChart', vehiclesPerSiteData.data, vehiclesPerSiteData.layout, {responsive: true});
+    {% endif %}
+    
+    {% if revenue_per_site_chart %}
+    var revenuePerSiteData = {{ revenue_per_site_chart|safe }};
+    Plotly.newPlot('revenuePerSiteChart', revenuePerSiteData.data, revenuePerSiteData.layout, {responsive: true});
+    {% endif %}
+    
+    {% if visit_patterns_chart %}
+    var visitPatternsData = {{ visit_patterns_chart|safe }};
+    Plotly.newPlot('visitPatternsChart', visitPatternsData.data, visitPatternsData.layout, {responsive: true});
+    {% endif %}
+    
+    {% if avg_stay_by_type_chart %}
+    var avgStayByTypeData = {{ avg_stay_by_type_chart|safe }};
+    Plotly.newPlot('avgStayByTypeChart', avgStayByTypeData.data, avgStayByTypeData.layout, {responsive: true});
+    {% endif %}
+    
+    {% if movement_flow_chart %}
+    var movementFlowData = {{ movement_flow_chart|safe }};
+    Plotly.newPlot('movementFlowChart', movementFlowData.data, movementFlowData.layout, {responsive: true});
+    {% endif %}
+    
+    // Organization filter function
+    function filterByOrganization() {
+        const select = document.getElementById('organizationFilter');
+        const selectedOrgId = select.value;
+        
+        // Build URL with organization parameter
+        const url = new URL(window.location.href);
+        if (selectedOrgId) {
+            url.searchParams.set('organization', selectedOrgId);
+        } else {
+            url.searchParams.delete('organization');
+        }
+        
+        // Reload page with new filter
+        window.location.href = url.toString();
+    }
+</script>
+{% endblock %}

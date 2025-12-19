@@ -960,6 +960,16 @@ def org_admin_dashboard(request):
         timestamp__gte=thirty_days_ago
     ).count()
     
+    # Add analytics data for organization
+    from .analytics import VehicleAnalytics
+    from .models import Vehicle, VehicleMovement
+    
+    analytics_engine = VehicleAnalytics(organization=organization)
+    fleet_summary = analytics_engine.get_fleet_summary()
+    daily_trips_chart = analytics_engine.get_daily_trips_chart()
+    parking_duration_chart = analytics_engine.get_parking_duration_chart()
+    route_analysis = analytics_engine.get_route_analysis()[:5]  # Top 5 routes
+    
     context = {
         'organization': organization,
         'users': users[:20],  # Latest 20 users for display
@@ -979,6 +989,17 @@ def org_admin_dashboard(request):
         'recent_activities': recent_activities,
         'most_active_users': most_active_users,
         'login_activities': login_activities,
+        'fleet_summary': fleet_summary,
+        'daily_trips_chart': daily_trips_chart,
+        'parking_duration_chart': parking_duration_chart,
+        'hourly_entries_chart': analytics_engine.get_hourly_entries_chart(organization),
+        'vehicles_per_site_chart': analytics_engine.get_vehicles_per_site_chart(organization),
+        'revenue_per_site_chart': analytics_engine.get_revenue_per_site_chart(organization),
+        'visit_patterns_chart': analytics_engine.get_visit_patterns_chart(organization),
+        'avg_stay_by_type_chart': analytics_engine.get_avg_stay_by_type_chart(organization),
+        'movement_flow_chart': analytics_engine.get_movement_flow_chart(organization),
+        'route_analysis': route_analysis,
+        'has_vehicle_data': Vehicle.objects.filter(organization=organization).exists(),
         'now': timezone.now(),
         'user_role': user_role,
     }
@@ -1166,22 +1187,71 @@ def reset_user_password(request, user_id):
 
 @login_required
 def analytics(request):
-    """Analytics module view"""
+    """Analytics module view with real PostgreSQL data"""
     if not request.user.can_access_module('analytics'):
         messages.error(request, "You don't have permission to access this page.")
         return redirect('dashboard')
+    
+    from .analytics import VehicleAnalytics
+    from .models import Vehicle, VehicleMovement, Organization
+    
+    # Get selected organization from request
+    selected_org_id = request.GET.get('organization')
+    selected_organization = None
+    
+    # Super admins can view all organizations, others only their own
+    if request.user.role == 'super_admin' or request.user.is_superuser:
+        available_organizations = Organization.objects.all()
+        if selected_org_id:
+            try:
+                selected_organization = Organization.objects.get(id=selected_org_id)
+            except Organization.DoesNotExist:
+                selected_organization = None
+    else:
+        available_organizations = [request.user.organization] if request.user.organization else []
+        selected_organization = request.user.organization
+    
+    # Initialize analytics for selected organization
+    analytics_engine = VehicleAnalytics(organization=selected_organization)
+    
+    # Get analytics data
+    fleet_summary = analytics_engine.get_fleet_summary()
+    daily_trips_chart = analytics_engine.get_daily_trips_chart()
+    parking_duration_chart = analytics_engine.get_parking_duration_chart()
+    driver_performance = analytics_engine.get_driver_performance()
+    route_analysis = analytics_engine.get_route_analysis()
+    cost_analysis = analytics_engine.get_cost_analysis()
+    
+    context = {
+        'fleet_summary': fleet_summary,
+        'daily_trips_chart': daily_trips_chart,
+        'parking_duration_chart': parking_duration_chart,
+        'hourly_entries_chart': analytics_engine.get_hourly_entries_chart(selected_organization),
+        'vehicles_per_site_chart': analytics_engine.get_vehicles_per_site_chart(selected_organization),
+        'revenue_per_site_chart': analytics_engine.get_revenue_per_site_chart(selected_organization),
+        'visit_patterns_chart': analytics_engine.get_visit_patterns_chart(selected_organization),
+        'avg_stay_by_type_chart': analytics_engine.get_avg_stay_by_type_chart(selected_organization),
+        'movement_flow_chart': analytics_engine.get_movement_flow_chart(selected_organization),
+        'driver_performance': driver_performance,
+        'route_analysis': route_analysis,
+        'cost_analysis': cost_analysis,
+        'available_organizations': available_organizations,
+        'selected_organization': selected_organization,
+        'has_data': Vehicle.objects.filter(organization=selected_organization).exists() if selected_organization else Vehicle.objects.exists(),
+        'is_super_admin': request.user.role == 'super_admin' or request.user.is_superuser,
+    }
     
     ActivityLog.objects.create(
         user=request.user,
         organization=request.user.organization,
         action='view',
         module='analytics',
-        description='Accessed analytics module',
+        description=f'Accessed analytics module for {selected_organization.name if selected_organization else "all organizations"}',
         ip_address=get_client_ip(request),
         user_agent=request.META.get('HTTP_USER_AGENT', '')
     )
     
-    return render(request, 'analytics.html')
+    return render(request, 'analytics.html', context)
 
 @login_required
 def inventory(request):
@@ -2080,9 +2150,9 @@ def generate_vehicle_report(request, report_type):
             'title': 'Route Analysis Report', 
             'data': [['Route', 'Frequency'], ['Home → Office', '14 times'], ['Office → Home', '14 times']]
         },
-        'fuel_consumption': {
-            'title': 'Fuel Consumption Report',
-            'data': [['Period', 'Fuel (L)', 'Cost'], ['This Week', '23.8', 'KSh 3,570'], ['Last Week', '22.1', 'KSh 3,315']]
+        'parking_costs': {
+            'title': 'Parking Cost Report',
+            'data': [['Period', 'Visits', 'Total Cost'], ['This Week', '15', 'KSh 1,350'], ['Last Week', '12', 'KSh 1,080']]
         },
         'weekly_summary': {
             'title': 'Weekly Summary Report',
@@ -2800,6 +2870,44 @@ def get_unread_notifications_count(request):
 
 
 @login_required
+@require_POST
+def generate_sample_data(request):
+    """Generate sample vehicle data for testing analytics"""
+    if not request.user.can_access_module('analytics'):
+        return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
+    
+    try:
+        from .analytics import generate_sample_data
+        
+        organization = request.user.organization
+        if not organization:
+            return JsonResponse({'success': False, 'error': 'No organization assigned'}, status=400)
+        
+        result = generate_sample_data(organization)
+        
+        ActivityLog.objects.create(
+            user=request.user,
+            organization=organization,
+            action='create',
+            module='analytics',
+            description='Generated sample vehicle data',
+            ip_address=get_client_ip(request),
+            user_agent=request.META.get('HTTP_USER_AGENT', '')
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': result
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)
+
+
+@login_required
 def activity_logs(request):
     """Get user activity logs"""
     logs = ActivityLog.objects.filter(user=request.user).order_by('-timestamp')
@@ -2835,6 +2943,104 @@ def activity_logs(request):
         'total_count': paginator.count,
     })
 
+
+@login_required
+def vehicle_analytics_api(request):
+    """API endpoint for vehicle analytics by license plate"""
+    plate_number = request.GET.get('plate', '').strip().upper()
+    
+    if not plate_number:
+        return JsonResponse({'success': False, 'error': 'License plate number is required'}, status=400)
+    
+    try:
+        from .models import Vehicle, VehicleMovement
+        from django.db.models import Sum, Count, Avg, Max
+        
+        # Find vehicle by license plate (case-insensitive search)
+        try:
+            vehicle = Vehicle.objects.get(license_plate__iexact=plate_number)
+        except Vehicle.DoesNotExist:
+            # Also try searching by vehicle_id as fallback
+            try:
+                vehicle = Vehicle.objects.get(vehicle_id__iexact=plate_number)
+            except Vehicle.DoesNotExist:
+                return JsonResponse({'success': False, 'error': 'Vehicle not found'}, status=404)
+        
+        # Allow access for regular users (employees) to search any vehicle
+        # Only restrict for organization admins to their own organization
+        if (request.user.role == 'organization_admin' and 
+            request.user.organization and 
+            vehicle.organization != request.user.organization):
+            return JsonResponse({'success': False, 'error': 'Access denied'}, status=403)
+        
+        # Get all movements for this vehicle
+        movements = VehicleMovement.objects.filter(vehicle=vehicle)
+        
+        if not movements.exists():
+            return JsonResponse({'success': False, 'error': 'No movement data found'}, status=404)
+        
+        # Calculate analytics
+        total_visits = movements.count()
+        total_amount = movements.aggregate(total=Sum('fuel_consumed_liters'))['total'] or 0  # Using fuel as amount proxy
+        total_time_minutes = movements.aggregate(total=Sum('duration_minutes'))['total'] or 0
+        total_time_hours = total_time_minutes / 60
+        
+        # Get unique destinations
+        destinations_data = movements.values('end_location').annotate(
+            visits=Count('id'),
+            total_time_minutes=Sum('duration_minutes'),
+            total_amount=Sum('fuel_consumed_liters'),
+            last_visit=Max('start_time')
+        ).order_by('-visits')
+        
+        unique_destinations = destinations_data.count()
+        
+        # Format destinations data
+        destinations = []
+        for dest in destinations_data:
+            total_minutes = dest['total_time_minutes'] or 0
+            avg_minutes = total_minutes / dest['visits'] if dest['visits'] > 0 else 0
+            
+            destinations.append({
+                'destination': dest['end_location'],
+                'visits': dest['visits'],
+                'total_time_hours': total_minutes / 60,
+                'total_time_minutes': total_minutes % 60,
+                'avg_time_hours': avg_minutes / 60,
+                'avg_time_minutes': avg_minutes % 60,
+                'total_amount': (dest['total_amount'] or 0) * 150,  # Convert to KSh estimate
+                'last_visit': dest['last_visit'].isoformat() if dest['last_visit'] else None
+            })
+        
+        analytics_data = {
+            'total_visits': total_visits,
+            'total_amount': total_amount * 150,  # Convert to KSh estimate
+            'total_time_hours': total_time_hours,
+            'unique_destinations': unique_destinations,
+            'destinations': destinations
+        }
+        
+        # Log the analytics access
+        ActivityLog.objects.create(
+            user=request.user,
+            organization=request.user.organization,
+            action='view',
+            module='vehicle_analytics',
+            description=f'Viewed analytics for vehicle {plate_number}',
+            ip_address=get_client_ip(request),
+            user_agent=request.META.get('HTTP_USER_AGENT', '')
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'analytics': analytics_data
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Error retrieving analytics: {str(e)}'
+        }, status=500)
 
 @login_required
 def export_profile_data(request):

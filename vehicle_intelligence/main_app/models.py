@@ -605,6 +605,13 @@ class InventoryItem(models.Model):
     def __str__(self):
         return f"{self.name} ({self.get_item_type_display()})"
     
+    @property
+    def is_low_stock(self):
+        """Check if part is low on stock"""
+        if self.item_type == 'part':
+            return self.quantity <= self.min_stock_level
+        return False
+    
     def save(self, *args, **kwargs):
         # Auto-set part status based on quantity
         if self.item_type == 'part':
@@ -615,3 +622,111 @@ class InventoryItem(models.Model):
             else:
                 self.part_status = 'in_stock'
         super().save(*args, **kwargs)
+
+
+# Vehicle Analytics Models
+class Vehicle(models.Model):
+    """Vehicle master data for analytics"""
+    vehicle_id = models.CharField(max_length=50, unique=True)
+    make = models.CharField(max_length=100)
+    model = models.CharField(max_length=100)
+    year = models.IntegerField()
+    vin = models.CharField(max_length=17, unique=True)
+    license_plate = models.CharField(max_length=20)
+    fuel_type = models.CharField(max_length=20, choices=[
+        ('gasoline', 'Gasoline'),
+        ('diesel', 'Diesel'),
+        ('electric', 'Electric'),
+        ('hybrid', 'Hybrid')
+    ])
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='vehicles')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'vehicles'
+        ordering = ['vehicle_id']
+    
+    def __str__(self):
+        return f"{self.make} {self.model} ({self.vehicle_id})"
+
+
+class VehicleMovement(models.Model):
+    """Vehicle movement/trip data for analytics"""
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name='movements')
+    driver = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='driven_trips')
+    trip_id = models.CharField(max_length=100, unique=True)
+    
+    # Location data
+    start_location = models.CharField(max_length=255)
+    end_location = models.CharField(max_length=255)
+    start_latitude = models.DecimalField(max_digits=10, decimal_places=8, null=True)
+    start_longitude = models.DecimalField(max_digits=11, decimal_places=8, null=True)
+    end_latitude = models.DecimalField(max_digits=10, decimal_places=8, null=True)
+    end_longitude = models.DecimalField(max_digits=11, decimal_places=8, null=True)
+    
+    # Time data
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField(null=True, blank=True)  # Allow NULL for active parking
+    duration_minutes = models.IntegerField(default=0)
+    
+    # Trip metrics
+    distance_km = models.DecimalField(max_digits=10, decimal_places=2)
+    fuel_consumed_liters = models.DecimalField(max_digits=8, decimal_places=2, null=True)
+    fuel_cost = models.DecimalField(max_digits=10, decimal_places=2, null=True)
+    average_speed_kmh = models.DecimalField(max_digits=5, decimal_places=2, null=True)
+    max_speed_kmh = models.DecimalField(max_digits=5, decimal_places=2, null=True)
+    
+    # Status
+    trip_status = models.CharField(max_length=20, choices=[
+        ('completed', 'Completed'),
+        ('active', 'Active'),
+        ('in_progress', 'In Progress'),
+        ('cancelled', 'Cancelled')
+    ], default='completed')
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'vehicle_movements'
+        ordering = ['-start_time']
+        indexes = [
+            models.Index(fields=['vehicle', 'start_time']),
+            models.Index(fields=['driver', 'start_time']),
+            models.Index(fields=['start_time']),
+        ]
+    
+    def __str__(self):
+        return f"{self.vehicle.vehicle_id} - {self.start_location} to {self.end_location}"
+
+
+class FuelTransaction(models.Model):
+    """Fuel purchase/consumption tracking"""
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name='fuel_transactions')
+    driver = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
+    
+    transaction_type = models.CharField(max_length=20, choices=[
+        ('purchase', 'Fuel Purchase'),
+        ('consumption', 'Fuel Consumption')
+    ])
+    
+    # Transaction details
+    liters = models.DecimalField(max_digits=8, decimal_places=2)
+    cost_per_liter = models.DecimalField(max_digits=6, decimal_places=2, null=True)
+    total_cost = models.DecimalField(max_digits=10, decimal_places=2, null=True)
+    odometer_reading = models.IntegerField(null=True)
+    
+    # Location
+    location = models.CharField(max_length=255, null=True)
+    latitude = models.DecimalField(max_digits=10, decimal_places=8, null=True)
+    longitude = models.DecimalField(max_digits=11, decimal_places=8, null=True)
+    
+    timestamp = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'fuel_transactions'
+        ordering = ['-timestamp']
+    
+    def __str__(self):
+        return f"{self.vehicle.vehicle_id} - {self.liters}L ({self.transaction_type})"

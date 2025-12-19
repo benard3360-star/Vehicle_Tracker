@@ -558,17 +558,7 @@
             </div>
         </div>
 
-        <div class="kpi-card">
-            <div class="kpi-header">
-                <div class="kpi-title">Recent Hires</div>
-                <div class="kpi-icon"><i class="fas fa-user-plus"></i></div>
-            </div>
-            <div class="kpi-value">{{ recent_hires }}</div>
-            <div class="kpi-change positive">
-                <i class="fas fa-calendar"></i>
-                Last 30 days
-            </div>
-        </div>
+
 
         <div class="kpi-card">
             <div class="kpi-header">
@@ -582,17 +572,7 @@
             </div>
         </div>
 
-        <div class="kpi-card">
-            <div class="kpi-header">
-                <div class="kpi-title">Monthly Logins</div>
-                <div class="kpi-icon"><i class="fas fa-sign-in-alt"></i></div>
-            </div>
-            <div class="kpi-value">{{ login_activities }}</div>
-            <div class="kpi-change positive">
-                <i class="fas fa-trending-up"></i>
-                User activity
-            </div>
-        </div>
+
 
         <div class="kpi-card">
             <div class="kpi-header">
@@ -606,6 +586,156 @@
             </div>
         </div>
     </div>
+
+    <!-- Analytics Section -->
+    {% if has_vehicle_data %}
+    <div class="modern-card" style="margin-bottom: 40px;">
+        <div class="card-header">
+            <h3 class="card-title">Vehicle Analytics Overview</h3>
+        </div>
+        <div class="card-body">
+            <!-- Fleet Summary KPIs -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 32px;">
+                <div style="text-align: center; padding: 16px; background: var(--gray-50); border-radius: 8px;">
+                    <div style="font-size: 24px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">{{ fleet_summary.total_vehicles }}</div>
+                    <div style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Total Vehicles</div>
+                </div>
+                <div style="text-align: center; padding: 16px; background: var(--gray-50); border-radius: 8px;">
+                    <div style="font-size: 24px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">{{ fleet_summary.utilization_rate|floatformat:1 }}%</div>
+                    <div style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Utilization Rate</div>
+                </div>
+                <div style="text-align: center; padding: 16px; background: var(--gray-50); border-radius: 8px;">
+                    <div style="font-size: 24px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">{{ fleet_summary.active_vehicles }}</div>
+                    <div style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Active Vehicles</div>
+                </div>
+                <div style="text-align: center; padding: 16px; background: var(--gray-50); border-radius: 8px;">
+                    <div style="font-size: 24px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">{{ fleet_summary.avg_parking_duration|floatformat:0 }}</div>
+                    <div style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Avg Parking (Min)</div>
+                </div>
+            </div>
+            
+            <!-- Charts Row -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+                <div>
+                    <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">Daily Trip Trends</h4>
+                    {% if daily_trips_chart %}
+                        <div id="dailyTripsChart" style="height: 300px;"></div>
+                    {% else %}
+                        <div style="height: 300px; display: flex; align-items: center; justify-content: center; background: var(--gray-50); border-radius: 8px; color: var(--text-muted);">
+                            <div style="text-align: center;">
+                                <i class="fas fa-chart-line" style="font-size: 32px; margin-bottom: 8px;"></i>
+                                <p>No trip data available</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                <div>
+                    <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">Parking Duration Analysis</h4>
+                    {% if parking_duration_chart %}
+                        <div id="parkingDurationChart" style="height: 300px;"></div>
+                    {% else %}
+                        <div style="height: 300px; display: flex; align-items: center; justify-content: center; background: var(--gray-50); border-radius: 8px; color: var(--text-muted);">
+                            <div style="text-align: center;">
+                                <i class="fas fa-clock" style="font-size: 32px; margin-bottom: 8px;"></i>
+                                <p>No parking duration data available</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                <div>
+                    <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">Hourly Vehicle Entries</h4>
+                    {% if hourly_entries_chart %}
+                        <div id="hourlyEntriesChart" style="height: 300px;"></div>
+                    {% else %}
+                        <div style="height: 300px; display: flex; align-items: center; justify-content: center; background: var(--gray-50); border-radius: 8px; color: var(--text-muted);">
+                            <div style="text-align: center;">
+                                <i class="fas fa-clock" style="font-size: 32px; margin-bottom: 8px;"></i>
+                                <p>No hourly entry data available</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                <div>
+                    <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">Vehicles per Organization</h4>
+                    {% if vehicles_per_site_chart %}
+                        <div id="vehiclesPerSiteChart" style="height: 300px;"></div>
+                    {% else %}
+                        <div style="height: 300px; display: flex; align-items: center; justify-content: center; background: var(--gray-50); border-radius: 8px; color: var(--text-muted);">
+                            <div style="text-align: center;">
+                                <i class="fas fa-building" style="font-size: 32px; margin-bottom: 8px;"></i>
+                                <p>No vehicle distribution data available</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                <div>
+                    <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">Revenue Analysis</h4>
+                    {% if revenue_per_site_chart %}
+                        <div id="revenuePerSiteChart" style="height: 300px;"></div>
+                    {% else %}
+                        <div style="height: 300px; display: flex; align-items: center; justify-content: center; background: var(--gray-50); border-radius: 8px; color: var(--text-muted);">
+                            <div style="text-align: center;">
+                                <i class="fas fa-money-bill-wave" style="font-size: 32px; margin-bottom: 8px;"></i>
+                                <p>No revenue data available</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                <div>
+                    <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">Visit Patterns</h4>
+                    {% if visit_patterns_chart %}
+                        <div id="visitPatternsChart" style="height: 300px;"></div>
+                    {% else %}
+                        <div style="height: 300px; display: flex; align-items: center; justify-content: center; background: var(--gray-50); border-radius: 8px; color: var(--text-muted);">
+                            <div style="text-align: center;">
+                                <i class="fas fa-chart-bar" style="font-size: 32px; margin-bottom: 8px;"></i>
+                                <p>No visit pattern data available</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                <div>
+                    <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">Average Stay by Type</h4>
+                    {% if avg_stay_by_type_chart %}
+                        <div id="avgStayByTypeChart" style="height: 300px;"></div>
+                    {% else %}
+                        <div style="height: 300px; display: flex; align-items: center; justify-content: center; background: var(--gray-50); border-radius: 8px; color: var(--text-muted);">
+                            <div style="text-align: center;">
+                                <i class="fas fa-clock" style="font-size: 32px; margin-bottom: 8px;"></i>
+                                <p>No stay duration data available</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Top Routes -->
+            {% if route_analysis %}
+            <div>
+                <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">Top Routes</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+                    {% for route in route_analysis %}
+                    <div style="padding: 12px 16px; background: var(--gray-50); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 600; color: var(--text-primary); font-size: 14px;">{{ route.route }}</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">{{ route.avg_distance|floatformat:1 }} km avg</div>
+                        </div>
+                        <div style="font-weight: 700; color: var(--green-600);">{{ route.frequency }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <div style="text-align: center; margin-top: 24px;">
+                <a href="{% url 'analytics' %}" class="action-btn" style="display: inline-flex;">
+                    <i class="fas fa-chart-bar"></i>
+                    View Full Analytics
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Content Grid -->
     <div class="content-grid">
@@ -826,6 +956,7 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Animate progress bars
@@ -898,6 +1029,42 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Render analytics charts
+    {% if daily_trips_chart %}
+    var dailyTripsData = {{ daily_trips_chart|safe }};
+    Plotly.newPlot('dailyTripsChart', dailyTripsData.data, dailyTripsData.layout, {responsive: true});
+    {% endif %}
+
+    {% if parking_duration_chart %}
+    var parkingDurationData = {{ parking_duration_chart|safe }};
+    Plotly.newPlot('parkingDurationChart', parkingDurationData.data, parkingDurationData.layout, {responsive: true});
+    {% endif %}
+    
+    {% if hourly_entries_chart %}
+    var hourlyEntriesData = {{ hourly_entries_chart|safe }};
+    Plotly.newPlot('hourlyEntriesChart', hourlyEntriesData.data, hourlyEntriesData.layout, {responsive: true});
+    {% endif %}
+    
+    {% if vehicles_per_site_chart %}
+    var vehiclesPerSiteData = {{ vehicles_per_site_chart|safe }};
+    Plotly.newPlot('vehiclesPerSiteChart', vehiclesPerSiteData.data, vehiclesPerSiteData.layout, {responsive: true});
+    {% endif %}
+    
+    {% if revenue_per_site_chart %}
+    var revenuePerSiteData = {{ revenue_per_site_chart|safe }};
+    Plotly.newPlot('revenuePerSiteChart', revenuePerSiteData.data, revenuePerSiteData.layout, {responsive: true});
+    {% endif %}
+    
+    {% if visit_patterns_chart %}
+    var visitPatternsData = {{ visit_patterns_chart|safe }};
+    Plotly.newPlot('visitPatternsChart', visitPatternsData.data, visitPatternsData.layout, {responsive: true});
+    {% endif %}
+    
+    {% if avg_stay_by_type_chart %}
+    var avgStayByTypeData = {{ avg_stay_by_type_chart|safe }};
+    Plotly.newPlot('avgStayByTypeChart', avgStayByTypeData.data, avgStayByTypeData.layout, {responsive: true});
+    {% endif %}
 
     // Auto-refresh data every 5 minutes
     setInterval(() => {

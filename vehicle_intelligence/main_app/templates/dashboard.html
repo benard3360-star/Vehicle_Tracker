@@ -376,6 +376,310 @@
         color: #16a34a;
     }
 
+    /* Quick Access Cards */
+    .quick-access-section {
+        margin-bottom: 32px;
+    }
+
+    .quick-access-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        margin-bottom: 32px;
+    }
+
+    .quick-access-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 28px 24px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .quick-access-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #16a34a, #15803d);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+
+    .quick-access-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        border-color: #16a34a;
+    }
+
+    .quick-access-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .quick-access-icon {
+        font-size: 40px;
+        margin-bottom: 16px;
+        display: block;
+        transition: transform 0.3s ease;
+    }
+
+    .quick-access-card:hover .quick-access-icon {
+        transform: scale(1.1);
+    }
+
+    .quick-access-card h3 {
+        font-size: 18px;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 8px;
+        transition: color 0.3s ease;
+    }
+
+    .quick-access-card:hover h3 {
+        color: #16a34a;
+    }
+
+    .quick-access-card p {
+        font-size: 14px;
+        color: #6b7280;
+        margin: 0;
+        font-weight: 500;
+    }
+
+    /* Vehicle Analytics Section */
+    .vehicle-analytics {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 32px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .analytics-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .analytics-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #111827;
+        margin: 0;
+    }
+
+    .plate-search {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .plate-input {
+        padding: 12px 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        text-transform: uppercase;
+        min-width: 200px;
+    }
+
+    .plate-input:focus {
+        outline: none;
+        border-color: #16a34a;
+        box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+    }
+
+    .search-btn {
+        padding: 12px 20px;
+        background: #16a34a;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .search-btn:hover {
+        background: #15803d;
+    }
+
+    .analytics-content {
+        display: none;
+    }
+
+    .analytics-content.show {
+        display: block;
+    }
+
+    .analytics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+
+    .analytics-card {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .analytics-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 4px;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .analytics-label {
+        font-size: 12px;
+        color: #374151;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .destinations-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .destinations-table th {
+        background: #374151;
+        padding: 16px 12px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 14px;
+        color: #ffffff;
+        border-bottom: 1px solid #4b5563;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .destinations-table td {
+        padding: 16px 12px;
+        border-bottom: 1px solid #e5e7eb;
+        font-size: 14px;
+        color: #111827;
+        font-weight: 500;
+        background: #ffffff;
+    }
+
+    .destinations-table tr:hover td {
+        background: #f8fafc;
+        color: #111827;
+    }
+
+    .destinations-table td:first-child {
+        font-weight: 600;
+        color: #16a34a;
+    }
+
+    .destinations-table td:nth-child(5) {
+        font-weight: 600;
+        color: #059669;
+    }
+
+    .loading {
+        text-align: center;
+        padding: 40px;
+        color: #6b7280;
+    }
+
+    .no-data {
+        text-align: center;
+        padding: 40px;
+        color: #9ca3af;
+    }
+
+    /* AI Assistant Floating Button */
+    .ai-assistant-float {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, #16a34a, #15803d);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 8px 24px rgba(22, 163, 74, 0.3);
+        transition: all 0.3s ease;
+        z-index: 1000;
+        border: 3px solid white;
+    }
+
+    .ai-assistant-float:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(22, 163, 74, 0.4);
+        background: linear-gradient(135deg, #15803d, #166534);
+    }
+
+    .ai-assistant-float i {
+        font-size: 28px;
+        color: white;
+        animation: pulse 2s infinite;
+    }
+
+    .ai-tooltip {
+        position: absolute;
+        right: 80px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #111827;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        pointer-events: none;
+    }
+
+    .ai-tooltip::after {
+        content: '';
+        position: absolute;
+        left: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+        border: 6px solid transparent;
+        border-left-color: #111827;
+    }
+
+    .ai-assistant-float:hover .ai-tooltip {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+
     /* Responsive */
     @media (max-width: 1024px) {
         .dashboard-grid {
@@ -384,6 +688,31 @@
 
         .kpi-grid {
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+
+        .analytics-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .plate-search {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .quick-access-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .ai-assistant-float {
+            width: 56px;
+            height: 56px;
+            bottom: 20px;
+            right: 20px;
+        }
+
+        .ai-assistant-float i {
+            font-size: 24px;
         }
     }
 
@@ -404,6 +733,35 @@
 
         .kpi-grid {
             grid-template-columns: 1fr;
+        }
+
+        .quick-access-grid {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .quick-access-card {
+            padding: 20px 16px;
+        }
+
+        .quick-access-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .ai-assistant-float {
+            width: 52px;
+            height: 52px;
+            bottom: 16px;
+            right: 16px;
+        }
+
+        .ai-assistant-float i {
+            font-size: 22px;
+        }
+
+        .ai-tooltip {
+            display: none;
         }
     }
 </style>
@@ -493,39 +851,110 @@
     </div>
     {% endif %}
 
+    <!-- Quick Access Cards (Only for regular users) -->
+    {% if not user.is_super_admin and not user.is_organization_admin %}
+    <div class="quick-access-section">
+        <div class="quick-access-grid">
+            <div class="quick-access-card" onclick="location.href='{% url 'vehicle_tracking' %}'" id="vehicleTrackingCard">
+                <div class="quick-access-icon">🚗</div>
+                <h3 id="trackingTitle">Vehicle Tracking</h3>
+                <p id="trackingDesc">Real-time location</p>
+            </div>
+            
+            <div class="quick-access-card" onclick="location.href='{% url 'movement_history' %}'" id="movementHistoryCard">
+                <div class="quick-access-icon">📍</div>
+                <h3 id="historyTitle">Movement History</h3>
+                <p id="historyDesc">Track your routes</p>
+            </div>
+            
+            <div class="quick-access-card" onclick="location.href='{% url 'reports' %}'" id="reportsCard">
+                <div class="quick-access-icon">📋</div>
+                <h3 id="reportsTitle">Reports</h3>
+                <p id="reportsDesc">Generate reports</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vehicle Analytics Section -->
+    <div class="vehicle-analytics">
+        <div class="analytics-header">
+            <h3 class="analytics-title">My Vehicle Analytics</h3>
+            <div style="font-size: 14px; color: #6b7280;">Enter your license plate to view detailed analytics</div>
+        </div>
+        
+        <div class="plate-search">
+            <input type="text" id="plateNumber" class="plate-input" placeholder="Enter License Plate (e.g., KCA 123A)" maxlength="20">
+            <button type="button" id="searchBtn" class="search-btn">
+                <i class="fas fa-search"></i> Search
+            </button>
+        </div>
+        
+        <div id="analyticsContent" class="analytics-content">
+            <div id="loadingState" class="loading" style="display: none;">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading your vehicle analytics...</p>
+            </div>
+            
+            <div id="analyticsData" style="display: none;">
+                <!-- Summary Cards -->
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <div class="analytics-value" id="totalVisits">0</div>
+                        <div class="analytics-label">Total Visits</div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="analytics-value" id="totalAmount">KSh 0</div>
+                        <div class="analytics-label">Total Amount Paid</div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="analytics-value" id="totalTime">0h</div>
+                        <div class="analytics-label">Total Parking Time</div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="analytics-value" id="uniqueDestinations">0</div>
+                        <div class="analytics-label">Unique Destinations</div>
+                    </div>
+                </div>
+                
+                <!-- Destinations Breakdown -->
+                <div style="margin-top: 32px;">
+                    <h4 style="font-size: 16px; font-weight: 600; color: #111827; margin-bottom: 16px;">Destinations Breakdown</h4>
+                    <div style="overflow-x: auto;">
+                        <table class="destinations-table">
+                            <thead>
+                                <tr>
+                                    <th>Destination</th>
+                                    <th>Visits</th>
+                                    <th>Total Time</th>
+                                    <th>Avg Time</th>
+                                    <th>Total Amount</th>
+                                    <th>Last Visit</th>
+                                </tr>
+                            </thead>
+                            <tbody id="destinationsTableBody">
+                                <!-- Data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="noDataState" class="no-data" style="display: none;">
+                <i class="fas fa-car" style="font-size: 48px; margin-bottom: 16px; opacity: 0.3;"></i>
+                <h4 style="color: #6b7280; margin-bottom: 8px;">No Vehicle Data Found</h4>
+                <p>We couldn't find any parking records for this license plate number.</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Modules Section -->
     <div class="modules-section">
         <div class="section-header">
             <h2 class="section-title">Vehicle Intelligence</h2>
         </div>
         <div class="module-grid">
-            <!-- Vehicle Tracking -->
-            <div class="module-card" onclick="location.href='{% url 'vehicle_tracking' %}'">
-                <div class="module-icon">🚗</div>
-                <h3>Vehicle Tracking</h3>
-                <p>Real-time location</p>
-            </div>
-            
-            <!-- Movement History -->
-            <div class="module-card" onclick="location.href='{% url 'movement_history' %}'">
-                <div class="module-icon">📍</div>
-                <h3>Movement History</h3>
-                <p>Track your routes</p>
-            </div>
-            
-            <!-- AI Assistant -->
-            <div class="module-card" onclick="location.href='{% url 'ai_assistant' %}'">
-                <div class="module-icon">🤖</div>
-                <h3>AI Assistant</h3>
-                <p>Movement insights</p>
-            </div>
-            
-            <!-- Reports -->
-            <div class="module-card" onclick="location.href='{% url 'reports' %}'">
-                <div class="module-icon">📋</div>
-                <h3>Reports</h3>
-                <p>Generate reports</p>
-            </div>
+
 
             {% if user.role == 'super_admin' %}
             <div class="module-card" onclick="location.href='{% url 'super_admin_dashboard' %}'">
@@ -590,51 +1019,13 @@
         </div>
     </div>
 
-    <!-- Recent Activity -->
-    <div class="activity-section">
-        <div class="activity-header">
-            <h3>Recent Activity</h3>
-            <span class="activity-badge">
-                {% if user.is_super_admin %}System Level
-                {% elif user.is_organization_admin %}Organization Level
-                {% else %}Your Activities{% endif %}
-            </span>
-        </div>
-        <div class="activity-list">
-            {% if recent_activities %}
-                {% for activity in recent_activities %}
-                <div class="activity-item">
-                    <div class="activity-icon">
-                        {% if activity.action == 'login' %}🔐
-                        {% elif activity.action == 'logout' %}🚪
-                        {% elif activity.action == 'create' %}➕
-                        {% elif activity.action == 'update' %}✏️
-                        {% elif activity.action == 'delete' %}🗑️
-                        {% else %}👁️{% endif %}
-                    </div>
-                    <div class="activity-details">
-                        <div class="activity-description">{{ activity.description }}</div>
-                        <div class="activity-meta">
-                            <span>{{ activity.timestamp|timesince }} ago</span>
-                            {% if user.is_super_admin %}
-                            <span>• {{ activity.user.username }}</span>
-                            {% if activity.organization %}
-                            <span>• {{ activity.organization.name }}</span>
-                            {% endif %}
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            {% else %}
-            <div class="activity-empty">
-                <div class="activity-empty-icon">📝</div>
-                <div style="font-size: 14px; color: #6b7280; font-weight: 500;">No recent activities</div>
-                <div style="font-size: 13px; color: #9ca3af; margin-top: 4px;">Activity will appear here as you use the system</div>
-            </div>
-            {% endif %}
-        </div>
-    </div>
+
+</div>
+
+<!-- AI Assistant Floating Button -->
+<div class="ai-assistant-float" onclick="location.href='{% url 'ai_assistant' %}'">
+    <div class="ai-tooltip">AI Assistant - Get instant help!</div>
+    <i class="fas fa-robot"></i>
 </div>
 
 <script>
@@ -692,6 +1083,144 @@
             }
         `;
         document.head.appendChild(style);
+        
+        // Vehicle Analytics functionality
+        const plateInput = document.getElementById('plateNumber');
+        const searchBtn = document.getElementById('searchBtn');
+        const analyticsContent = document.getElementById('analyticsContent');
+        const loadingState = document.getElementById('loadingState');
+        const analyticsData = document.getElementById('analyticsData');
+        const noDataState = document.getElementById('noDataState');
+        
+        if (plateInput && searchBtn) {
+            // Search on button click
+            searchBtn.addEventListener('click', searchVehicleAnalytics);
+            
+            // Search on Enter key
+            plateInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchVehicleAnalytics();
+                }
+            });
+            
+            function searchVehicleAnalytics() {
+                const plateNumber = plateInput.value.trim().toUpperCase();
+                
+                if (!plateNumber) {
+                    showToast('Please enter a license plate number', 'warning');
+                    return;
+                }
+                
+                // Show loading state
+                analyticsContent.classList.add('show');
+                loadingState.style.display = 'block';
+                analyticsData.style.display = 'none';
+                noDataState.style.display = 'none';
+                
+                // Fetch analytics data
+                fetch(`/api/vehicle-analytics/?plate=${encodeURIComponent(plateNumber)}`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    loadingState.style.display = 'none';
+                    
+                    if (data.success && data.analytics) {
+                        displayAnalytics(data.analytics);
+                        analyticsData.style.display = 'block';
+                    } else {
+                        noDataState.style.display = 'block';
+                        resetModuleCards();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    loadingState.style.display = 'none';
+                    noDataState.style.display = 'block';
+                    resetModuleCards();
+                    showToast('Error loading vehicle analytics', 'error');
+                });
+            }
+            
+            function displayAnalytics(analytics) {
+                const plateNumber = plateInput.value.trim().toUpperCase();
+                
+                // Update summary cards
+                document.getElementById('totalVisits').textContent = analytics.total_visits;
+                document.getElementById('totalAmount').textContent = `KSh ${analytics.total_amount.toFixed(2)}`;
+                document.getElementById('totalTime').textContent = `${Math.round(analytics.total_time_hours)}h`;
+                document.getElementById('uniqueDestinations').textContent = analytics.unique_destinations;
+                
+                // Update destinations table
+                const tableBody = document.getElementById('destinationsTableBody');
+                tableBody.innerHTML = '';
+                
+                analytics.destinations.forEach(dest => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><strong>${dest.destination}</strong></td>
+                        <td>${dest.visits}</td>
+                        <td>${Math.round(dest.total_time_hours)}h ${Math.round(dest.total_time_minutes % 60)}m</td>
+                        <td>${Math.round(dest.avg_time_hours)}h ${Math.round(dest.avg_time_minutes % 60)}m</td>
+                        <td>KSh ${dest.total_amount.toLocaleString()}</td>
+                        <td>${new Date(dest.last_visit).toLocaleDateString()}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+                
+                // Update module cards with vehicle-specific information
+                updateModuleCards(plateNumber, analytics);
+            }
+            
+            function updateModuleCards(plateNumber, analytics) {
+                // Update Vehicle Tracking card
+                document.getElementById('trackingTitle').textContent = `${plateNumber} Tracking`;
+                document.getElementById('trackingDesc').textContent = `Current status & location`;
+                
+                // Update Movement History card
+                document.getElementById('historyTitle').textContent = `${plateNumber} History`;
+                document.getElementById('historyDesc').textContent = `${analytics.total_visits} trips recorded`;
+                
+                // Update Reports card
+                document.getElementById('reportsTitle').textContent = `${plateNumber} Reports`;
+                document.getElementById('reportsDesc').textContent = `${analytics.unique_destinations} destinations visited`;
+                
+                // Add visual indicator that cards are now vehicle-specific
+                const cards = ['vehicleTrackingCard', 'movementHistoryCard', 'reportsCard'];
+                cards.forEach(cardId => {
+                    const card = document.getElementById(cardId);
+                    if (card) {
+                        card.style.borderColor = '#16a34a';
+                        card.style.boxShadow = '0 8px 24px rgba(22, 163, 74, 0.2)';
+                        card.style.transform = 'translateY(-2px)';
+                    }
+                });
+            }
+            
+            function resetModuleCards() {
+                // Reset to default state
+                document.getElementById('trackingTitle').textContent = 'Vehicle Tracking';
+                document.getElementById('trackingDesc').textContent = 'Real-time location';
+                document.getElementById('historyTitle').textContent = 'Movement History';
+                document.getElementById('historyDesc').textContent = 'Track your routes';
+                document.getElementById('reportsTitle').textContent = 'Reports';
+                document.getElementById('reportsDesc').textContent = 'Generate reports';
+                
+                // Remove visual indicators
+                const cards = ['vehicleTrackingCard', 'movementHistoryCard', 'reportsCard'];
+                cards.forEach(cardId => {
+                    const card = document.getElementById(cardId);
+                    if (card) {
+                        card.style.borderColor = '#e5e7eb';
+                        card.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.04)';
+                        card.style.transform = 'translateY(0)';
+                    }
+                });
+            }
+        }
     });
 </script>
 {% endblock %}

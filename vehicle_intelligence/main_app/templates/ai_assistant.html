@@ -107,17 +107,24 @@
         padding: 12px 16px;
         border-radius: 12px;
         font-size: 14px;
-        line-height: 1.5;
+        line-height: 1.6;
+        color: #111827;
+        font-weight: 500;
     }
 
     .message.ai .message-content {
         background: #f0fdf4;
         border: 1px solid #bbf7d0;
+        color: #0f172a;
+        font-weight: 500;
     }
 
     .message.user .message-content {
-        background: #f3f4f6;
-        border: 1px solid #e5e7eb;
+        background: #ffffff;
+        border: 1px solid #d1d5db;
+        color: #111827;
+        font-weight: 500;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     }
 
     .chat-input {
@@ -141,9 +148,17 @@
         border: 1px solid #e5e7eb;
         border-radius: 8px;
         font-size: 14px;
+        color: #111827;
+        font-weight: 500;
         resize: none;
         outline: none;
         transition: border-color 0.2s ease;
+        background: #ffffff;
+    }
+    
+    .chat-textarea::placeholder {
+        color: #6b7280;
+        font-weight: 400;
     }
 
     .chat-textarea:focus {
@@ -184,27 +199,31 @@
 
     .quick-action {
         padding: 8px 12px;
-        background: #f9fafb;
-        border: 1px solid #e5e7eb;
+        background: #ffffff;
+        border: 1px solid #d1d5db;
         border-radius: 6px;
         font-size: 12px;
-        color: #6b7280;
+        color: #374151;
+        font-weight: 500;
         cursor: pointer;
         transition: all 0.2s ease;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     }
 
     .quick-action:hover {
         background: #f0fdf4;
         border-color: #16a34a;
         color: #16a34a;
+        font-weight: 600;
     }
 
     .typing-indicator {
         display: none;
         align-items: center;
         gap: 8px;
-        color: #6b7280;
+        color: #374151;
         font-size: 14px;
+        font-weight: 500;
         padding: 12px 0;
     }
 
@@ -258,12 +277,15 @@
         font-size: 18px;
         font-weight: 600;
         margin-bottom: 8px;
-        color: #6b7280;
+        color: #374151;
     }
 
     .empty-description {
         font-size: 14px;
         margin-bottom: 24px;
+        color: #6b7280;
+        font-weight: 500;
+        line-height: 1.5;
     }
 
     @media (max-width: 768px) {
@@ -431,19 +453,19 @@
         }
         
         if (message.includes('pattern') || message.includes('analyz')) {
-            return "📊 Movement Pattern Analysis:\n\n• Most active hours: 8-10 AM, 5-7 PM\n• Average daily distance: 42.3 km\n• Common destinations: Office (45%), Home (30%), Shopping (15%)\n• Preferred routes: Uhuru Highway, Waiyaki Way\n• Fuel efficiency: 12.5 km/L average";
+            return "📊 Movement Pattern Analysis:\n\n• Most active hours: 8-10 AM, 5-7 PM\n• Average parking duration: 3.2 hours\n• Common destinations: Office (45%), Shopping Malls (30%), Airport (15%)\n• Peak parking days: Monday-Friday\n• Average visits per week: 12 locations";
         }
         
         if (message.includes('report')) {
             return "📋 Generating your movement report...\n\nWeekly Summary:\n• Total distance: 298.4 km\n• Total trips: 28\n• Average trip duration: 18 minutes\n• Most visited location: Westlands Office\n• Peak travel time: 8:30 AM\n\nWould you like me to email you the detailed report?";
         }
         
-        if (message.includes('fuel') || message.includes('cost')) {
-            return "⛽ Fuel & Cost Analysis:\n\n• This week's fuel consumption: 23.8L\n• Estimated fuel cost: KSh 3,570\n• Average efficiency: 12.5 km/L\n• Cost per km: KSh 11.96\n• Savings tip: Use Thika Road during off-peak hours to save 15% on fuel";
+        if (message.includes('cost') || message.includes('payment')) {
+            return "💰 Parking Cost Analysis:\n\n• This week's parking fees: KSh 2,450\n• Average cost per visit: KSh 87\n• Most expensive location: Westlands Mall (KSh 150/visit)\n• Most affordable: JKIA (KSh 50/visit)\n• Savings tip: Use monthly passes at frequent locations";
         }
         
         // Default response
-        return "I understand you're asking about vehicle movements. I can help you with:\n\n🚗 Real-time vehicle location\n📍 Route history and analysis\n📊 Movement patterns and insights\n📋 Detailed reports\n⛽ Fuel consumption tracking\n\nTry asking something specific like 'Where is my vehicle?' or 'Show me this week's routes'";
+        return "I understand you're asking about vehicle movements. I can help you with:\n\n🚗 Real-time vehicle location\n📍 Route history and analysis\n📊 Movement patterns and insights\n📋 Detailed reports\n💰 Parking cost analysis\n\nTry asking something specific like 'Where is my vehicle?' or 'Show me this week's routes'";
     }
 
     // Auto-resize textarea

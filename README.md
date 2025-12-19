@@ -14,27 +14,40 @@ A modern Django-based vehicle movement intelligence and AI analytics system with
 - **Sales Management** - Vehicle sales tracking and customer management
 - **Manufacturing** - Production line monitoring and order management
 - **Purchasing** - Supplier management and purchase order tracking
+- **Data Processing** - Advanced Excel data import and feature engineering
+- **Export Capabilities** - CSV and PDF export for all major modules
 
 ### User Management
 - **Multi-organization Support** - Separate organizations with dedicated admins
+- **Enhanced Organization Creation** - Structured forms with validation and categorization
 - **Profile Management** - Complete user profiles with document uploads
 - **Activity Logging** - Comprehensive audit trails for all user actions
 - **Secure Authentication** - Password management and security features
+- **User Role Management** - Granular permissions and access control
+- **Password Reset System** - Temporary password generation and forced changes
 
 ### Modern UI/UX
 - **Enterprise SaaS Design** - Clean, professional interface
 - **Responsive Layout** - Works on desktop, tablet, and mobile
 - **Interactive Dashboard** - Real-time KPIs and quick access modules
 - **Modern Sidebar Navigation** - Organized by functionality
+- **Modal Forms** - Dynamic forms with conditional field display
+- **Progress Indicators** - Visual progress bars and status badges
+- **Dropdown Menus** - Interactive export and action menus
+- **Form Validation** - Real-time validation with helpful error messages
+- **Settings Management** - Comprehensive configuration panels
 
 ## 🛠️ Technology Stack
 
 - **Backend**: Django 5.2.9, Python 3.11
-- **Database**: SQLite (development)
+- **Database**: SQLite (development), PostgreSQL (production ready)
 - **Frontend**: HTML5, CSS3, JavaScript (ES6)
 - **PDF Generation**: ReportLab
+- **Data Processing**: Pandas, NumPy for Excel data import
 - **Icons**: Font Awesome 6.4
 - **Fonts**: Inter, Poppins (Google Fonts)
+- **Version Control**: Git with comprehensive .gitignore
+- **Export Formats**: CSV, PDF, Excel
 
 ## 📦 Installation
 
@@ -85,12 +98,25 @@ vehicle-intelligence-system/
 │   ├── main_app/
 │   │   ├── templates/
 │   │   │   ├── profile/
+│   │   │   │   ├── profile.html
+│   │   │   │   └── edit_profile.html
 │   │   │   ├── ai_assistant.html
 │   │   │   ├── dashboard.html
 │   │   │   ├── vehicle_tracking.html
 │   │   │   ├── movement_history.html
 │   │   │   ├── reports.html
+│   │   │   ├── inventory.html
+│   │   │   ├── inventory_settings.html
+│   │   │   ├── sales.html
+│   │   │   ├── manufacturing.html
+│   │   │   ├── purchasing.html
+│   │   │   ├── super_admin_dashboard.html
+│   │   │   ├── super_admin_organizations.html
+│   │   │   ├── super_admin_users.html
+│   │   │   ├── org_admin_dashboard.html
+│   │   │   ├── hr_dashboard.html
 │   │   │   └── base.html
+│   │   ├── migrations/
 │   │   ├── models.py
 │   │   ├── views.py
 │   │   ├── urls.py
@@ -99,8 +125,10 @@ vehicle-intelligence-system/
 │   │   ├── settings.py
 │   │   ├── urls.py
 │   │   └── wsgi.py
+│   ├── data_preprocessing.py
 │   ├── db.sqlite3
 │   └── manage.py
+├── .gitignore
 ├── requirements.txt
 └── README.md
 ```
@@ -186,6 +214,27 @@ vehicle-intelligence-system/
 - Order status tracking and delivery monitoring
 - Budget tracking and cost analysis
 
+### 10. Super Admin Management (`/super-admin-dashboard/`)
+- System-wide organization management
+- Enhanced organization creation with structured forms
+- User management across all organizations
+- System activity monitoring and audit logs
+- Organization admin assignment and management
+
+### 11. HR Dashboard (`/hr-dashboard/`)
+- Employee management and analytics
+- Department and role distribution tracking
+- Profile completion monitoring
+- Document verification management
+- Export capabilities for HR reports
+
+### 12. Data Processing (`/data-preprocessing/`)
+- Excel file import and processing
+- Advanced feature engineering
+- Vehicle and movement data creation
+- Organization mapping and creation
+- Data validation and cleaning
+
 ## 🔧 Configuration
 
 ### Environment Variables
@@ -198,12 +247,14 @@ DATABASE_URL=sqlite:///db.sqlite3
 
 ### Database Models
 - **CustomUser** - Extended user model with role-based permissions
-- **Organization** - Multi-tenant organization support
-- **UserProfile** - Extended profile information
-- **Document** - File upload and management
-- **ActivityLog** - Comprehensive audit logging
-- **Notification** - User notification system
-- **InventoryItem** - Vehicle and parts inventory management
+- **Organization** - Multi-tenant organization support with enhanced fields
+- **UserProfile** - Extended profile information with audit logging
+- **Document** - File upload and management with expiration tracking
+- **ActivityLog** - Comprehensive audit logging with IP and user agent tracking
+- **Notification** - User notification system with read status
+- **InventoryItem** - Vehicle and parts inventory management with status tracking
+- **ProfileAuditLog** - Profile change tracking and history
+- **UserPermission** - Granular module-level permissions
 
 ## 🎨 UI/UX Design
 
@@ -230,14 +281,44 @@ DATABASE_URL=sqlite:///db.sqlite3
 - **Desktop**: 769px - 1024px
 - **Large Desktop**: ≥ 1025px
 
+## 🚀 Advanced Features
+
+### Data Processing & Import
+- **Excel Data Import** - Process multiple Excel files with vehicle movement data
+- **Feature Engineering** - Advanced data transformation and enhancement
+- **Data Validation** - Comprehensive validation and error handling
+- **Batch Processing** - Handle large datasets efficiently
+
+### Export & Reporting
+- **Multi-format Export** - CSV, PDF, and Excel export capabilities
+- **Professional PDF Reports** - Formatted reports with tables and charts
+- **Inventory Reports** - Detailed vehicle and parts inventory reports
+- **HR Reports** - Employee and organization analytics
+
+### UI/UX Enhancements
+- **Dynamic Forms** - Conditional field display based on selections
+- **Modal Interfaces** - Clean popup forms for data entry
+- **Progress Tracking** - Visual progress bars for production and tasks
+- **Status Management** - Color-coded status badges and indicators
+- **Interactive Dropdowns** - Context-sensitive action menus
+
+### System Administration
+- **Enhanced Organization Creation** - Structured forms with validation
+- **User Role Management** - Granular permission control
+- **Activity Monitoring** - Comprehensive system audit trails
+- **Settings Management** - Configurable system preferences
+
 ## 🔒 Security Features
 
-- **Role-based Access Control** - Granular permissions system
-- **Activity Logging** - Complete audit trail of user actions
-- **Secure Authentication** - Password hashing and session management
+- **Role-based Access Control** - Granular permissions system with module-level access
+- **Activity Logging** - Complete audit trail with IP addresses and user agents
+- **Secure Authentication** - Password hashing, session management, and forced password changes
 - **CSRF Protection** - Built-in Django CSRF middleware
-- **Input Validation** - Server-side validation for all forms
-- **File Upload Security** - Restricted file types and sizes
+- **Input Validation** - Server-side validation for all forms with error handling
+- **File Upload Security** - Restricted file types, sizes, and secure storage
+- **Profile Audit Logging** - Track all profile changes with before/after values
+- **Temporary Password System** - Secure password reset with forced changes
+- **Organization Isolation** - Complete data separation between organizations
 
 ## 🚀 Deployment
 
@@ -287,6 +368,9 @@ For support and questions:
 - **v1.3.0** - Complete profile management system
 - **v1.4.0** - Added business modules (Inventory, Sales, Manufacturing, Purchasing)
 - **v1.4.1** - Enhanced inventory with add items, export (CSV/PDF), and settings
+- **v1.5.0** - Enhanced organization management with structured forms and validation
+- **v1.5.1** - Added comprehensive data processing and Excel import capabilities
+- **v1.5.2** - Enhanced UI components with modals, dropdowns, and progress indicators
 
 ---
 

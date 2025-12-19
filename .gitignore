@@ -71,3 +71,10 @@ coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
+
+# Data folders and datasets
+data/
+*.xlsx
+*.xls
+*.csv
+enhanced_vehicle_data.xlsx

@@ -58,8 +58,12 @@ urlpatterns = [
     path('reports/', views.reports, name='reports'),
     path('reports/generate/<str:report_type>/', views.generate_vehicle_report, name='generate_vehicle_report'),
     
+    # Vehicle Analytics API
+    path('api/vehicle-analytics/', views.vehicle_analytics_api, name='vehicle_analytics_api'),
+    
     # Admin Module Views (for admin roles)
     path('analytics/', views.analytics, name='analytics'),
+    path('analytics/generate-sample-data/', views.generate_sample_data, name='generate_sample_data'),
     path('inventory/', views.inventory, name='inventory'),
     path('inventory/add/', views.add_inventory_item, name='add_inventory_item'),
     path('inventory/export/', views.export_inventory_report, name='export_inventory_report'),
