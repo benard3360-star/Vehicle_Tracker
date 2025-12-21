@@ -2954,34 +2954,31 @@ def vehicle_analytics_api(request):
     
     try:
         from .models import Vehicle, VehicleMovement
-        from django.db.models import Sum, Count, Avg, Max
+        from django.db.models import Sum, Count, Avg, Max, Q
         
-        # Find vehicle by license plate (case-insensitive search)
-        try:
-            vehicle = Vehicle.objects.get(license_plate__iexact=plate_number)
-        except Vehicle.DoesNotExist:
-            # Also try searching by vehicle_id as fallback
-            try:
-                vehicle = Vehicle.objects.get(vehicle_id__iexact=plate_number)
-            except Vehicle.DoesNotExist:
-                return JsonResponse({'success': False, 'error': 'Vehicle not found'}, status=404)
+        # Search for vehicle using VehicleMovement table by Plate Number in user's organization
+        if request.user.organization:
+            movements = VehicleMovement.objects.filter(
+                vehicle__vehicle_id__icontains=plate_number,
+                vehicle__organization=request.user.organization
+            ).select_related('vehicle')
+        else:
+            movements = VehicleMovement.objects.filter(
+                vehicle__vehicle_id__icontains=plate_number
+            ).select_related('vehicle')
         
-        # Allow access for regular users (employees) to search any vehicle
-        # Only restrict for organization admins to their own organization
-        if (request.user.role == 'organization_admin' and 
-            request.user.organization and 
-            vehicle.organization != request.user.organization):
-            return JsonResponse({'success': False, 'error': 'Access denied'}, status=403)
+        if not movements.exists():
+            return JsonResponse({'success': False, 'error': 'Vehicle not found'}, status=404)
         
-        # Get all movements for this vehicle
-        movements = VehicleMovement.objects.filter(vehicle=vehicle)
+        # Get the vehicle from movements
+        vehicle = movements.first().vehicle
         
         if not movements.exists():
             return JsonResponse({'success': False, 'error': 'No movement data found'}, status=404)
         
         # Calculate analytics
         total_visits = movements.count()
-        total_amount = movements.aggregate(total=Sum('fuel_consumed_liters'))['total'] or 0  # Using fuel as amount proxy
+        total_amount = movements.aggregate(total=Sum('fuel_consumed_liters'))['total'] or 0
         total_time_minutes = movements.aggregate(total=Sum('duration_minutes'))['total'] or 0
         total_time_hours = total_time_minutes / 60
         
@@ -3008,13 +3005,13 @@ def vehicle_analytics_api(request):
                 'total_time_minutes': total_minutes % 60,
                 'avg_time_hours': avg_minutes / 60,
                 'avg_time_minutes': avg_minutes % 60,
-                'total_amount': (dest['total_amount'] or 0) * 150,  # Convert to KSh estimate
+                'total_amount': (dest['total_amount'] or 0) * 150,
                 'last_visit': dest['last_visit'].isoformat() if dest['last_visit'] else None
             })
         
         analytics_data = {
             'total_visits': total_visits,
-            'total_amount': total_amount * 150,  # Convert to KSh estimate
+            'total_amount': total_amount * 150,
             'total_time_hours': total_time_hours,
             'unique_destinations': unique_destinations,
             'destinations': destinations

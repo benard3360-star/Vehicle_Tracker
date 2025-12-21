@@ -680,6 +680,182 @@
         50% { transform: scale(1.1); }
     }
 
+    /* AI Chat Modal Styles */
+    .ai-chat-modal {
+        position: fixed;
+        bottom: 100px;
+        right: 24px;
+        width: 380px;
+        height: 500px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        z-index: 1001;
+        display: none;
+        flex-direction: column;
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+    }
+
+    .ai-chat-modal.show {
+        display: flex;
+        animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .ai-chat-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .ai-chat-header {
+        padding: 16px 20px;
+        background: linear-gradient(135deg, #16a34a, #15803d);
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .ai-chat-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+        font-size: 16px;
+    }
+
+    .ai-chat-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 18px;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+        transition: background 0.2s ease;
+    }
+
+    .ai-chat-close:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .ai-chat-messages {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        background: #f9fafb;
+    }
+
+    .ai-message, .user-message {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .user-message {
+        flex-direction: row-reverse;
+    }
+
+    .ai-avatar, .user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+
+    .ai-avatar {
+        background: linear-gradient(135deg, #16a34a, #15803d);
+        color: white;
+    }
+
+    .user-avatar {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .ai-message-content, .user-message-content {
+        background: white;
+        padding: 12px 16px;
+        border-radius: 12px;
+        max-width: 280px;
+        font-size: 14px;
+        line-height: 1.5;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        color: #111827;
+        font-weight: 500;
+    }
+
+    .user-message-content {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .ai-chat-input {
+        padding: 16px 20px;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        background: white;
+    }
+
+    .ai-chat-input input {
+        flex: 1;
+        padding: 12px 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 24px;
+        font-size: 14px;
+        outline: none;
+    }
+
+    .ai-chat-input input:focus {
+        border-color: #16a34a;
+        box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+    }
+
+    .ai-chat-input button {
+        width: 40px;
+        height: 40px;
+        background: #16a34a;
+        border: none;
+        border-radius: 50%;
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s ease;
+    }
+
+    .ai-chat-input button:hover {
+        background: #15803d;
+    }
+
+    .ai-chat-input button:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+    }
+
     /* Responsive */
     @media (max-width: 1024px) {
         .dashboard-grid {
@@ -713,6 +889,13 @@
 
         .ai-assistant-float i {
             font-size: 24px;
+        }
+        
+        .ai-chat-modal {
+            width: calc(100vw - 40px);
+            height: 400px;
+            right: 20px;
+            bottom: 90px;
         }
     }
 
@@ -1023,9 +1206,40 @@
 </div>
 
 <!-- AI Assistant Floating Button -->
-<div class="ai-assistant-float" onclick="location.href='{% url 'ai_assistant' %}'">
+<div class="ai-assistant-float" id="aiAssistantBtn">
     <div class="ai-tooltip">AI Assistant - Get instant help!</div>
     <i class="fas fa-robot"></i>
+</div>
+
+<!-- AI Assistant Chat Modal -->
+<div id="aiChatModal" class="ai-chat-modal">
+    <div class="ai-chat-container">
+        <div class="ai-chat-header">
+            <div class="ai-chat-title">
+                <i class="fas fa-robot"></i>
+                <span>AI Assistant</span>
+            </div>
+            <button class="ai-chat-close" id="aiChatClose">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="ai-chat-messages" id="aiChatMessages">
+            <div class="ai-message">
+                <div class="ai-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="ai-message-content">
+                    Hello! I'm your AI assistant. I can help you with vehicle analytics, parking insights, and answer questions about your data. How can I assist you today?
+                </div>
+            </div>
+        </div>
+        <div class="ai-chat-input">
+            <input type="text" id="aiChatInput" placeholder="Ask me anything about your vehicle data..." maxlength="500">
+            <button id="aiChatSend">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -1091,6 +1305,115 @@
         const loadingState = document.getElementById('loadingState');
         const analyticsData = document.getElementById('analyticsData');
         const noDataState = document.getElementById('noDataState');
+        const aiAssistantBtn = document.getElementById('aiAssistantBtn');
+        
+        // AI Assistant button click handler
+        if (aiAssistantBtn) {
+            aiAssistantBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                toggleAIChat();
+            });
+        }
+        
+        // AI Chat functionality
+        const aiChatModal = document.getElementById('aiChatModal');
+        const aiChatClose = document.getElementById('aiChatClose');
+        const aiChatInput = document.getElementById('aiChatInput');
+        const aiChatSend = document.getElementById('aiChatSend');
+        const aiChatMessages = document.getElementById('aiChatMessages');
+        
+        function toggleAIChat() {
+            aiChatModal.classList.toggle('show');
+            if (aiChatModal.classList.contains('show')) {
+                aiChatInput.focus();
+            }
+        }
+        
+        function closeAIChat() {
+            aiChatModal.classList.remove('show');
+        }
+        
+        function sendAIMessage() {
+            const message = aiChatInput.value.trim();
+            if (!message) return;
+            
+            // Add user message
+            addMessage(message, 'user');
+            aiChatInput.value = '';
+            
+            // Simulate AI response
+            setTimeout(() => {
+                const response = getAIResponse(message);
+                addMessage(response, 'ai');
+            }, 1000);
+        }
+        
+        function addMessage(content, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type === 'user' ? 'user-message' : 'ai-message';
+            
+            const avatar = document.createElement('div');
+            avatar.className = type === 'user' ? 'user-avatar' : 'ai-avatar';
+            avatar.innerHTML = type === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = type === 'user' ? 'user-message-content' : 'ai-message-content';
+            messageContent.textContent = content;
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(messageContent);
+            
+            aiChatMessages.appendChild(messageDiv);
+            aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+        }
+        
+        function getAIResponse(message) {
+            const lowerMessage = message.toLowerCase();
+            
+            if (lowerMessage.includes('hello') || lowerMessage.includes('hi')) {
+                return 'Hello! How can I help you with your vehicle data today?';
+            }
+            if (lowerMessage.includes('help')) {
+                return 'I can help you with vehicle analytics, parking insights, movement history, and generating reports. What would you like to know?';
+            }
+            if (lowerMessage.includes('analytics') || lowerMessage.includes('data')) {
+                return 'You can search for vehicle analytics by entering a license plate number in the search box above. This will show you detailed parking history and statistics.';
+            }
+            if (lowerMessage.includes('parking')) {
+                return 'I can provide insights about parking patterns, duration, costs, and frequently visited locations. Do you have a specific vehicle in mind?';
+            }
+            if (lowerMessage.includes('report')) {
+                return 'You can generate various reports including movement summaries, parking analysis, and cost breakdowns. Would you like me to guide you through the process?';
+            }
+            
+            return 'I understand you are asking about vehicle data. You can search for specific vehicles using license plates, view analytics, or generate reports. Is there something specific you would like to know?';
+        }
+        
+        // AI Chat event listeners
+        if (aiChatClose) {
+            aiChatClose.addEventListener('click', closeAIChat);
+        }
+        
+        if (aiChatSend) {
+            aiChatSend.addEventListener('click', sendAIMessage);
+        }
+        
+        if (aiChatInput) {
+            aiChatInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendAIMessage();
+                }
+            });
+        }
+        
+        // Close AI chat when clicking outside
+        document.addEventListener('click', function(e) {
+            if (aiChatModal.classList.contains('show') && 
+                !aiChatModal.contains(e.target) && 
+                !aiAssistantBtn.contains(e.target)) {
+                closeAIChat();
+            }
+        });
         
         if (plateInput && searchBtn) {
             // Search on button click
@@ -1111,6 +1434,8 @@
                     return;
                 }
                 
+                console.log('Searching for plate:', plateNumber);
+                
                 // Show loading state
                 analyticsContent.classList.add('show');
                 loadingState.style.display = 'block';
@@ -1124,20 +1449,25 @@
                         'X-Requested-With': 'XMLHttpRequest',
                     }
                 })
-                .then(response => response.json())
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('Response data:', data);
                     loadingState.style.display = 'none';
                     
                     if (data.success && data.analytics) {
                         displayAnalytics(data.analytics);
                         analyticsData.style.display = 'block';
                     } else {
+                        console.log('No data or error:', data.error);
                         noDataState.style.display = 'block';
                         resetModuleCards();
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
+                    console.error('Fetch error:', error);
                     loadingState.style.display = 'none';
                     noDataState.style.display = 'block';
                     resetModuleCards();
