@@ -27,7 +27,34 @@
         padding: 1.5rem;
         border-radius: 8px;
         box-shadow: var(--shadow);
-        border-left: 4px solid var(--primary-green);
+        border-left: 4px solid #dc2626;
+        position: relative;
+        color: #000000;
+    }
+    
+    .org-card h4 {
+        color: #000000;
+    }
+    
+    .org-card p {
+        color: #333333;
+    }
+    
+    .org-card .text-muted {
+        color: #666666 !important;
+    }
+    
+    .org-card::before {
+        content: '';
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 12px;
+        height: 12px;
+        background: #dc2626;
+        border-radius: 50%;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
     
     .org-header {
@@ -322,7 +349,7 @@
                 {% if org.phone %}<p><strong>Phone:</strong> {{ org.phone }}</p>{% endif %}
                 {% if org.address %}<p><strong>Address:</strong> {{ org.address|truncatechars:100 }}</p>{% endif %}
                 <p><strong>Created:</strong> {{ org.created_at|date:"M d, Y" }}</p>
-                <p><strong>Users:</strong> {{ org.get_user_count }}</p>
+                <p><strong>Vehicles:</strong> {{ org.vehicle_count }}</p>
             </div>
             
             <div class="admin-info">

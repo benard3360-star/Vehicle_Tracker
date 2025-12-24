@@ -277,7 +277,18 @@ def super_admin_organizations_view(request):
         messages.error(request, "You don't have permission to access this page.")
         return redirect('dashboard')
     
+    from .models import Vehicle
+    from django.db.models import Count
+    
     organizations = Organization.objects.all().order_by('-created_at')
+    
+    # Add vehicle count for each organization
+    for org in organizations:
+        # Count unique license plates from ParkingRecord table
+        from .models import ParkingRecord
+        org.vehicle_count = ParkingRecord.objects.filter(
+            organization=org.name
+        ).values('plate_number').distinct().count()
     
     context = {
         'user_role': user_role,
@@ -362,6 +373,113 @@ def super_admin_activities_view(request):
     )
     
     return render(request, 'super_admin_activities.html', context)
+
+@login_required
+def vehicle_alert(request):
+    """Vehicle Alert - Search and analyze specific vehicles"""
+    user_role = getattr(request.user, 'role', 'employee')
+    
+    # Check if user is super_admin OR has is_superuser=True
+    if user_role != 'super_admin' and not getattr(request.user, 'is_superuser', False):
+        messages.error(request, "You don't have permission to access this page.")
+        return redirect('dashboard')
+    
+    vehicle_data = None
+    search_query = request.GET.get('search', '').strip()
+    
+    if search_query:
+        try:
+            # Import the Vehicle and VehicleMovement models
+            from .models import Vehicle, VehicleMovement
+            from django.db.models import Sum, Avg, Count
+            
+            # Search for vehicle by license plate or vehicle ID
+            vehicle = Vehicle.objects.filter(
+                Q(license_plate__icontains=search_query) |
+                Q(vehicle_id__icontains=search_query) |
+                Q(vin__icontains=search_query)
+            ).first()
+            
+            if vehicle:
+                # Get real analytics from VehicleMovement data
+                movements = VehicleMovement.objects.filter(vehicle=vehicle)
+                
+                # Calculate real statistics
+                total_movements = movements.count()
+                total_distance = movements.aggregate(Sum('distance_km'))['distance_km__sum'] or 0
+                total_fuel = movements.aggregate(Sum('fuel_consumed_liters'))['fuel_consumed_liters__sum'] or 0
+                avg_speed = movements.aggregate(Avg('average_speed_kmh'))['average_speed_kmh__avg'] or 0
+                
+                # Get recent movements
+                recent_movements = movements.order_by('-start_time')[:5]
+                recent_trips = []
+                for movement in recent_movements:
+                    recent_trips.append({
+                        'date': movement.start_time.strftime('%Y-%m-%d'),
+                        'from': movement.start_location,
+                        'to': movement.end_location,
+                        'distance': movement.distance_km,
+                        'duration': movement.duration_minutes
+                    })
+                
+                # Get last movement for location and time
+                last_movement = movements.order_by('-start_time').first()
+                last_location = last_movement.end_location if last_movement else 'Unknown'
+                last_seen = last_movement.end_time if last_movement and last_movement.end_time else timezone.now()
+                
+                # Monthly statistics (last 30 days)
+                from datetime import datetime, timedelta
+                thirty_days_ago = timezone.now() - timedelta(days=30)
+                monthly_movements = movements.filter(start_time__gte=thirty_days_ago)
+                monthly_trips = monthly_movements.count()
+                monthly_distance = monthly_movements.aggregate(Sum('distance_km'))['distance_km__sum'] or 0
+                monthly_fuel = monthly_movements.aggregate(Sum('fuel_consumed_liters'))['fuel_consumed_liters__sum'] or 0
+                
+                # Calculate fuel efficiency
+                fuel_efficiency = round(monthly_distance / monthly_fuel, 2) if monthly_fuel > 0 else 0
+                
+                # Get vehicle analytics data
+                vehicle_data = {
+                    'vehicle': vehicle,
+                    'total_trips': total_movements,
+                    'total_distance': round(total_distance, 1),
+                    'total_fuel': round(total_fuel, 1),
+                    'avg_speed': round(avg_speed, 1),
+                    'last_location': last_location,
+                    'status': 'Active' if vehicle.is_active else 'Inactive',
+                    'last_seen': last_seen,
+                    'monthly_trips': monthly_trips,
+                    'monthly_distance': round(monthly_distance, 1),
+                    'fuel_efficiency': fuel_efficiency,
+                    'maintenance_due': False,  # You can add maintenance logic here
+                    'recent_trips': recent_trips,
+                    'organization': vehicle.organization.name if vehicle.organization else 'Unknown',
+                    'coordinates': {
+                        'lat': -1.2921,  # Default Nairobi coordinates
+                        'lng': 36.8219
+                    }
+                }
+        except Exception as e:
+            messages.error(request, f'Error searching for vehicle: {str(e)}')
+    
+    context = {
+        'user_role': user_role,
+        'search_query': search_query,
+        'vehicle_data': vehicle_data,
+        'now': timezone.now(),
+    }
+    
+    ActivityLog.objects.create(
+        user=request.user,
+        organization=None,
+        action='view',
+        module='vehicle_alert',
+        description=f'Accessed vehicle alert{" - searched: " + search_query if search_query else ""}',
+        ip_address=get_client_ip(request),
+        user_agent=request.META.get('HTTP_USER_AGENT', '')
+    )
+    
+    return render(request, 'vehicle_alert.html', context)
 
 # ==================== SUPER ADMIN API ENDPOINTS ====================
 
@@ -966,7 +1084,6 @@ def org_admin_dashboard(request):
     
     analytics_engine = VehicleAnalytics(organization=organization)
     fleet_summary = analytics_engine.get_fleet_summary()
-    daily_trips_chart = analytics_engine.get_daily_trips_chart()
     parking_duration_chart = analytics_engine.get_parking_duration_chart()
     route_analysis = analytics_engine.get_route_analysis()[:5]  # Top 5 routes
     
@@ -990,14 +1107,12 @@ def org_admin_dashboard(request):
         'most_active_users': most_active_users,
         'login_activities': login_activities,
         'fleet_summary': fleet_summary,
-        'daily_trips_chart': daily_trips_chart,
         'parking_duration_chart': parking_duration_chart,
         'hourly_entries_chart': analytics_engine.get_hourly_entries_chart(organization),
         'vehicles_per_site_chart': analytics_engine.get_vehicles_per_site_chart(organization),
         'revenue_per_site_chart': analytics_engine.get_revenue_per_site_chart(organization),
         'visit_patterns_chart': analytics_engine.get_visit_patterns_chart(organization),
         'avg_stay_by_type_chart': analytics_engine.get_avg_stay_by_type_chart(organization),
-        'movement_flow_chart': analytics_engine.get_movement_flow_chart(organization),
         'route_analysis': route_analysis,
         'has_vehicle_data': Vehicle.objects.filter(organization=organization).exists(),
         'now': timezone.now(),
@@ -1195,8 +1310,10 @@ def analytics(request):
     from .analytics import VehicleAnalytics
     from .models import Vehicle, VehicleMovement, Organization
     
-    # Get selected organization from request
+    # Get selected filters from request
     selected_org_id = request.GET.get('organization')
+    selected_brand = request.GET.get('vehicle_brand')
+    selected_type = request.GET.get('vehicle_type')
     selected_organization = None
     
     # Super admins can view all organizations, others only their own
@@ -1211,12 +1328,16 @@ def analytics(request):
         available_organizations = [request.user.organization] if request.user.organization else []
         selected_organization = request.user.organization
     
-    # Initialize analytics for selected organization
-    analytics_engine = VehicleAnalytics(organization=selected_organization)
+    # Get available vehicle brands and types from ParkingRecord
+    from .models import ParkingRecord
+    available_brands = ParkingRecord.objects.values_list('vehicle_brand', flat=True).distinct().order_by('vehicle_brand')
+    available_types = ParkingRecord.objects.values_list('vehicle_type', flat=True).distinct().order_by('vehicle_type')
+    
+    # Initialize analytics for selected organization and filters
+    analytics_engine = VehicleAnalytics(organization=selected_organization, vehicle_brand=selected_brand, vehicle_type=selected_type)
     
     # Get analytics data
     fleet_summary = analytics_engine.get_fleet_summary()
-    daily_trips_chart = analytics_engine.get_daily_trips_chart()
     parking_duration_chart = analytics_engine.get_parking_duration_chart()
     driver_performance = analytics_engine.get_driver_performance()
     route_analysis = analytics_engine.get_route_analysis()
@@ -1224,19 +1345,21 @@ def analytics(request):
     
     context = {
         'fleet_summary': fleet_summary,
-        'daily_trips_chart': daily_trips_chart,
         'parking_duration_chart': parking_duration_chart,
         'hourly_entries_chart': analytics_engine.get_hourly_entries_chart(selected_organization),
         'vehicles_per_site_chart': analytics_engine.get_vehicles_per_site_chart(selected_organization),
         'revenue_per_site_chart': analytics_engine.get_revenue_per_site_chart(selected_organization),
         'visit_patterns_chart': analytics_engine.get_visit_patterns_chart(selected_organization),
         'avg_stay_by_type_chart': analytics_engine.get_avg_stay_by_type_chart(selected_organization),
-        'movement_flow_chart': analytics_engine.get_movement_flow_chart(selected_organization),
         'driver_performance': driver_performance,
         'route_analysis': route_analysis,
         'cost_analysis': cost_analysis,
         'available_organizations': available_organizations,
         'selected_organization': selected_organization,
+        'available_brands': available_brands,
+        'available_types': available_types,
+        'selected_brand': selected_brand,
+        'selected_type': selected_type,
         'has_data': Vehicle.objects.filter(organization=selected_organization).exists() if selected_organization else Vehicle.objects.exists(),
         'is_super_admin': request.user.role == 'super_admin' or request.user.is_superuser,
     }
@@ -2953,41 +3076,29 @@ def vehicle_analytics_api(request):
         return JsonResponse({'success': False, 'error': 'License plate number is required'}, status=400)
     
     try:
-        from .models import Vehicle, VehicleMovement
+        from .models import ParkingRecord
         from django.db.models import Sum, Count, Avg, Max, Q
         
-        # Search for vehicle using VehicleMovement table by Plate Number in user's organization
-        if request.user.organization:
-            movements = VehicleMovement.objects.filter(
-                vehicle__vehicle_id__icontains=plate_number,
-                vehicle__organization=request.user.organization
-            ).select_related('vehicle')
-        else:
-            movements = VehicleMovement.objects.filter(
-                vehicle__vehicle_id__icontains=plate_number
-            ).select_related('vehicle')
+        # Search for parking records by plate number
+        parking_records = ParkingRecord.objects.filter(
+            plate_number__iexact=plate_number
+        )
         
-        if not movements.exists():
-            return JsonResponse({'success': False, 'error': 'Vehicle not found'}, status=404)
+        if not parking_records.exists():
+            return JsonResponse({'success': False, 'error': 'No parking records found for this license plate'}, status=404)
         
-        # Get the vehicle from movements
-        vehicle = movements.first().vehicle
+        # Calculate analytics from parking records
+        total_visits = parking_records.count()
+        total_amount = parking_records.aggregate(total=Sum('amount_paid'))['total'] or 0
+        total_time_minutes = parking_records.aggregate(total=Sum('parking_duration_minutes'))['total'] or 0
+        total_time_hours = total_time_minutes / 60 if total_time_minutes else 0
         
-        if not movements.exists():
-            return JsonResponse({'success': False, 'error': 'No movement data found'}, status=404)
-        
-        # Calculate analytics
-        total_visits = movements.count()
-        total_amount = movements.aggregate(total=Sum('fuel_consumed_liters'))['total'] or 0
-        total_time_minutes = movements.aggregate(total=Sum('duration_minutes'))['total'] or 0
-        total_time_hours = total_time_minutes / 60
-        
-        # Get unique destinations
-        destinations_data = movements.values('end_location').annotate(
+        # Get unique organizations/locations
+        destinations_data = parking_records.values('organization').annotate(
             visits=Count('id'),
-            total_time_minutes=Sum('duration_minutes'),
-            total_amount=Sum('fuel_consumed_liters'),
-            last_visit=Max('start_time')
+            total_time_minutes=Sum('parking_duration_minutes'),
+            total_amount=Sum('amount_paid'),
+            last_visit=Max('entry_time')
         ).order_by('-visits')
         
         unique_destinations = destinations_data.count()
@@ -2999,19 +3110,19 @@ def vehicle_analytics_api(request):
             avg_minutes = total_minutes / dest['visits'] if dest['visits'] > 0 else 0
             
             destinations.append({
-                'destination': dest['end_location'],
+                'destination': dest['organization'],
                 'visits': dest['visits'],
-                'total_time_hours': total_minutes / 60,
-                'total_time_minutes': total_minutes % 60,
-                'avg_time_hours': avg_minutes / 60,
-                'avg_time_minutes': avg_minutes % 60,
-                'total_amount': (dest['total_amount'] or 0) * 150,
+                'total_time_hours': int(total_minutes // 60),
+                'total_time_minutes': int(total_minutes % 60),
+                'avg_time_hours': int(avg_minutes // 60),
+                'avg_time_minutes': int(avg_minutes % 60),
+                'total_amount': float(dest['total_amount'] or 0),
                 'last_visit': dest['last_visit'].isoformat() if dest['last_visit'] else None
             })
         
         analytics_data = {
             'total_visits': total_visits,
-            'total_amount': total_amount * 150,
+            'total_amount': float(total_amount),
             'total_time_hours': total_time_hours,
             'unique_destinations': unique_destinations,
             'destinations': destinations
@@ -3040,7 +3151,247 @@ def vehicle_analytics_api(request):
         }, status=500)
 
 @login_required
+def export_analytics_report(request):
+    """Export comprehensive analytics report as PDF"""
+    if not request.user.can_access_module('analytics'):
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    from .analytics import VehicleAnalytics
+    from .models import Vehicle, Organization
+    
+    # Get selected filters
+    selected_org_id = request.GET.get('organization')
+    selected_brand = request.GET.get('vehicle_brand')
+    selected_type = request.GET.get('vehicle_type')
+    selected_organization = None
+    
+    if request.user.role == 'super_admin' or request.user.is_superuser:
+        if selected_org_id:
+            try:
+                selected_organization = Organization.objects.get(id=selected_org_id)
+            except Organization.DoesNotExist:
+                selected_organization = None
+    else:
+        selected_organization = request.user.organization
+    
+    # Initialize analytics with all filters
+    analytics_engine = VehicleAnalytics(organization=selected_organization, vehicle_brand=selected_brand, vehicle_type=selected_type)
+    
+    # Get all analytics data
+    fleet_summary = analytics_engine.get_fleet_summary()
+    driver_performance = analytics_engine.get_driver_performance()[:10]
+    route_analysis = analytics_engine.get_route_analysis()[:10]
+    cost_analysis = analytics_engine.get_cost_analysis()
+    
+    # Create PDF
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=50, bottomMargin=50)
+    styles = getSampleStyleSheet()
+    story = []
+    
+    # Title
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=24,
+        spaceAfter=30,
+        alignment=1,
+        textColor=colors.HexColor('#16a34a')
+    )
+    
+    org_name = selected_organization.name if selected_organization else "All Organizations"
+    story.append(Paragraph(f'Fleet Analytics Report - {org_name}', title_style))
+    story.append(Paragraph(f'Generated on: {timezone.now().strftime("%B %d, %Y at %H:%M")}', styles['Normal']))
+    story.append(Spacer(1, 30))
+    
+    # Executive Summary
+    story.append(Paragraph('Executive Summary', styles['Heading2']))
+    summary_data = [
+        ['Metric', 'Value', 'Description'],
+        ['Total Vehicles', str(fleet_summary['total_vehicles']), 'Total vehicles in fleet'],
+        ['Active Vehicles', str(fleet_summary['active_vehicles']), 'Currently active vehicles'],
+        ['Utilization Rate', f"{fleet_summary['utilization_rate']}%", 'Fleet utilization percentage'],
+        ['Avg Parking Duration', f"{fleet_summary['avg_parking_duration']} min", 'Average parking time per visit'],
+        ['Total Trips', str(fleet_summary['total_trips']), 'Total completed trips']
+    ]
+    
+    summary_table = Table(summary_data)
+    summary_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#16a34a')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
+    
+    story.append(summary_table)
+    story.append(Spacer(1, 30))
+    
+    # Driver Performance Section
+    if driver_performance:
+        story.append(Paragraph('Top Driver Performance', styles['Heading2']))
+        driver_data = [['Driver', 'Total Trips', 'Avg Duration (min)', 'Performance Rating']]
+        
+        for driver in driver_performance[:5]:
+            rating = 'Excellent' if driver['total_trips'] > 20 else 'Good'
+            driver_data.append([
+                driver['driver_name'] or 'Unknown',
+                str(driver['total_trips']),
+                str(int(driver['avg_duration'])),
+                rating
+            ])
+        
+        driver_table = Table(driver_data)
+        driver_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        
+        story.append(driver_table)
+        story.append(Spacer(1, 30))
+    
+    # Route Analysis Section
+    if route_analysis:
+        story.append(Paragraph('Most Frequent Routes', styles['Heading2']))
+        route_data = [['Route', 'Frequency', 'Avg Duration (min)']]
+        
+        for route in route_analysis[:5]:
+            route_data.append([
+                route['route'],
+                str(route['frequency']),
+                str(int(route['avg_duration']))
+            ])
+        
+        route_table = Table(route_data)
+        route_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        
+        story.append(route_table)
+        story.append(Spacer(1, 30))
+    
+    # Cost Analysis Section
+    story.append(Paragraph('Cost Analysis', styles['Heading2']))
+    cost_data = [
+        ['Cost Metric', 'Value'],
+        ['Total Fuel Cost', f"KSh {cost_analysis['fuel_cost']:,.2f}"],
+        ['Trip Fuel Cost', f"KSh {cost_analysis['trip_fuel_cost']:,.2f}"],
+        ['Cost per Trip', f"KSh {cost_analysis['cost_per_trip']:,.2f}"],
+        ['Total Trips', str(cost_analysis['total_trips'])]
+    ]
+    
+    cost_table = Table(cost_data)
+    cost_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
+    
+    story.append(cost_table)
+    story.append(Spacer(1, 30))
+    
+    # Key Insights Section
+    story.append(Paragraph('Key Insights & Recommendations', styles['Heading2']))
+    insights = [
+        f"• Fleet utilization rate of {fleet_summary['utilization_rate']}% indicates {'excellent' if fleet_summary['utilization_rate'] > 80 else 'good' if fleet_summary['utilization_rate'] > 60 else 'room for improvement'} fleet management",
+        f"• Average parking duration of {fleet_summary['avg_parking_duration']} minutes shows {'efficient' if fleet_summary['avg_parking_duration'] < 30 else 'moderate'} vehicle turnover",
+        f"• Total of {fleet_summary['total_trips']} trips completed with {fleet_summary['active_vehicles']} active vehicles",
+        "• Regular monitoring of driver performance can help optimize fleet efficiency",
+        "• Route optimization based on frequency data can reduce operational costs"
+    ]
+    
+    for insight in insights:
+        story.append(Paragraph(insight, styles['Normal']))
+        story.append(Spacer(1, 10))
+    
+    # Footer
+    story.append(Spacer(1, 50))
+    footer_style = ParagraphStyle(
+        'Footer',
+        parent=styles['Normal'],
+        fontSize=10,
+        textColor=colors.grey,
+        alignment=1
+    )
+    story.append(Paragraph('Vehicle Intelligence System - Fleet Analytics Report', footer_style))
+    
+    # Build PDF
+    doc.build(story)
+    buffer.seek(0)
+    
+    # Log the export
+    ActivityLog.objects.create(
+        user=request.user,
+        organization=request.user.organization,
+        action='export',
+        module='analytics',
+        description=f'Exported analytics report for {org_name}',
+        ip_address=get_client_ip(request),
+        user_agent=request.META.get('HTTP_USER_AGENT', '')
+    )
+    
+    # Return PDF response
+    response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+    filename = f"analytics_report_{org_name.replace(' ', '_')}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    
+    return response
+
+@login_required
 def export_profile_data(request):
+    """Export profile data in JSON format"""
+    user = request.user
+    profile = getattr(user, 'profile', None)
+    
+    if not profile:
+        return JsonResponse({'error': 'Profile not found'}, status=404)
+    
+    # Collect all profile data
+    profile_data = {
+        'user': {
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'role': user.role,
+            'is_active': user.is_active,
+            'date_joined': user.date_joined.isoformat(),
+            'last_login': user.last_login.isoformat() if user.last_login else None,
+        },
+        'metadata': {
+            'exported_at': timezone.now().isoformat(),
+            'exported_by': user.username,
+            'format': 'json',
+        }
+    }
+    
+    # Log the export
+    ActivityLog.objects.create(
+        user=user,
+        organization=user.organization,
+        action='export',
+        module='profile',
+        description='Exported profile data',
+        ip_address=get_client_ip(request),
+        user_agent=request.META.get('HTTP_USER_AGENT', '')
+    )
+    
+    # Create response
+    response = JsonResponse(profile_data, json_dumps_params={'indent': 2})
+    response['Content-Disposition'] = f'attachment; filename="profile_data_{user.username}_{timezone.now().strftime("%Y%m%d_%H%M%S")}.json"'
+    return response
     """Export profile data in JSON format"""
     user = request.user
     profile = getattr(user, 'profile', None)

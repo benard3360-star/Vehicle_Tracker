@@ -157,10 +157,11 @@ vehicle-intelligence-system/
 ## 🚀 Key Modules
 
 ### 1. Vehicle Tracking (`/vehicle-tracking/`)
-- Real-time vehicle location monitoring
-- Current status and coordinates
+- Real-time vehicle location monitoring with **Leaflet.js mapping**
+- **Interactive map** with organization markers and distance calculations
+- Current status and coordinates with **red marker styling**
 - Daily summary statistics
-- Interactive map view (placeholder)
+- **Free mapping solution** using OpenStreetMap
 
 ### 2. Movement History (`/movement-history/`)
 - Complete trip history with filtering
@@ -182,13 +183,37 @@ vehicle-intelligence-system/
 - **Performance Metrics** - KPIs and efficiency ratings
 - **Location History** - Most visited locations
 
-### 5. Profile Management (`/profile/`)
+### 5. **Enhanced Analytics Dashboard** (`/analytics/`)
+- **Advanced Filtering System**:
+  - Organization filter (for super admins)
+  - **Vehicle Brand filter** (populated from actual dataset)
+  - **Vehicle Type filter** (populated from actual dataset)
+  - **Reset Filters button** for quick return to default view
+- **Real-time Visualizations**:
+  - **Parking Duration Analysis** - Bar chart by organization
+  - **Hourly Vehicle Entries** - Line chart showing entry patterns
+  - **Vehicles per Organization** - **Interactive pie chart** with legend
+  - **Revenue per Organization** - Bar chart with **logarithmic scale** and hover details
+  - **Vehicle Visit Patterns** - Visit frequency analysis
+  - **Average Stay by Vehicle Type** - Duration comparison
+- **Comprehensive PDF Export**:
+  - **One-click download** of complete analytics report
+  - **Executive summary** with key metrics
+  - **Driver performance** analysis
+  - **Route analysis** with frequency data
+  - **Cost analysis** and recommendations
+  - **Automated insights** based on fleet performance
+  - **Filtered reports** respecting all applied filters
+- **Data Accuracy**: Uses **ParkingRecord table** for precise vehicle counts
+- **Performance Optimized**: Database-level filtering with Django ORM
+
+### 6. Profile Management (`/profile/`)
 - Complete user profile with personal information
 - Document upload and management
 - Activity history and audit logs
 - Security settings and preferences
 
-### 6. Inventory Management (`/inventory/`)
+### 7. Inventory Management (`/inventory/`)
 - Vehicle inventory with VIN tracking and status management
 - Parts inventory with stock levels and categories
 - Low stock alerts and automatic status updates
@@ -196,39 +221,39 @@ vehicle-intelligence-system/
 - Export inventory reports in CSV and PDF formats
 - Configurable settings for stock management
 
-### 7. Sales Management (`/sales/`)
+### 8. Sales Management (`/sales/`)
 - Vehicle sales tracking with customer information
 - Sales performance metrics and revenue tracking
 - Customer management with purchase history
 - Sales status tracking (completed, pending, cancelled)
 
-### 8. Manufacturing (`/manufacturing/`)
+### 9. Manufacturing (`/manufacturing/`)
 - Production line monitoring with real-time progress
 - Production order management and tracking
 - Efficiency metrics and completion rates
 - Multi-line production with status indicators
 
-### 9. Purchasing (`/purchasing/`)
+### 10. Purchasing (`/purchasing/`)
 - Purchase order management and tracking
 - Supplier relationship management
 - Order status tracking and delivery monitoring
 - Budget tracking and cost analysis
 
-### 10. Super Admin Management (`/super-admin-dashboard/`)
+### 11. Super Admin Management (`/super-admin-dashboard/`)
 - System-wide organization management
 - Enhanced organization creation with structured forms
 - User management across all organizations
 - System activity monitoring and audit logs
 - Organization admin assignment and management
 
-### 11. HR Dashboard (`/hr-dashboard/`)
+### 12. HR Dashboard (`/hr-dashboard/`)
 - Employee management and analytics
 - Department and role distribution tracking
 - Profile completion monitoring
 - Document verification management
 - Export capabilities for HR reports
 
-### 12. Data Processing (`/data-preprocessing/`)
+### 13. Data Processing (`/data-preprocessing/`)
 - Excel file import and processing
 - Advanced feature engineering
 - Vehicle and movement data creation
@@ -370,7 +395,9 @@ For support and questions:
 - **v1.4.1** - Enhanced inventory with add items, export (CSV/PDF), and settings
 - **v1.5.0** - Enhanced organization management with structured forms and validation
 - **v1.5.1** - Added comprehensive data processing and Excel import capabilities
-- **v1.5.2** - Enhanced UI components with modals, dropdowns, and progress indicators
+- **v1.6.0** - **Enhanced Analytics Dashboard** with advanced filtering, interactive visualizations, and comprehensive PDF export
+- **v1.6.1** - Added **Leaflet.js mapping** with free OpenStreetMap integration and interactive organization markers
+- **v1.6.2** - Implemented **multi-dimensional filtering** (Organization, Vehicle Brand, Vehicle Type) with reset functionality
 
 ---
 

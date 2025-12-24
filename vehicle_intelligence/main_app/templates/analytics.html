@@ -232,19 +232,53 @@
                 <h1 class="analytics-title">Fleet Analytics</h1>
                 <p class="analytics-subtitle">Comprehensive insights into your vehicle fleet performance and utilization</p>
             </div>
-            {% if is_super_admin and available_organizations %}
-            <div style="min-width: 250px;">
-                <label for="organizationFilter" style="display: block; font-size: 14px; font-weight: 500; color: #6b7280; margin-bottom: 4px;">Filter by Organization</label>
-                <select id="organizationFilter" onchange="filterByOrganization()" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 14px; background: white;">
-                    <option value="">All Organizations</option>
-                    {% for org in available_organizations %}
-                    <option value="{{ org.id }}" {% if selected_organization and selected_organization.id == org.id %}selected{% endif %}>
-                        {{ org.name }}
-                    </option>
-                    {% endfor %}
-                </select>
+            <div style="display: flex; gap: 16px; align-items: center;">
+                <button onclick="downloadAnalyticsReport()" style="background: #16a34a; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-download"></i>
+                    Download PDF Report
+                </button>
+                <button onclick="resetFilters()" style="background: #6b7280; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-refresh"></i>
+                    Reset Filters
+                </button>
+                <div style="display: flex; gap: 12px;">
+                    {% if is_super_admin and available_organizations %}
+                    <div style="min-width: 200px;">
+                        <label for="organizationFilter" style="display: block; font-size: 12px; font-weight: 500; color: #6b7280; margin-bottom: 4px;">Organization</label>
+                        <select id="organizationFilter" onchange="applyFilters()" style="width: 100%; padding: 6px 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; background: white;">
+                            <option value="">All Organizations</option>
+                            {% for org in available_organizations %}
+                            <option value="{{ org.id }}" {% if selected_organization and selected_organization.id == org.id %}selected{% endif %}>
+                                {{ org.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
+                    <div style="min-width: 150px;">
+                        <label for="brandFilter" style="display: block; font-size: 12px; font-weight: 500; color: #6b7280; margin-bottom: 4px;">Vehicle Brand</label>
+                        <select id="brandFilter" onchange="applyFilters()" style="width: 100%; padding: 6px 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; background: white;">
+                            <option value="">All Brands</option>
+                            {% for brand in available_brands %}
+                            <option value="{{ brand }}" {% if selected_brand == brand %}selected{% endif %}>
+                                {{ brand }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div style="min-width: 150px;">
+                        <label for="typeFilter" style="display: block; font-size: 12px; font-weight: 500; color: #6b7280; margin-bottom: 4px;">Vehicle Type</label>
+                        <select id="typeFilter" onchange="applyFilters()" style="width: 100%; padding: 6px 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; background: white;">
+                            <option value="">All Types</option>
+                            {% for type in available_types %}
+                            <option value="{{ type }}" {% if selected_type == type %}selected{% endif %}>
+                                {{ type }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
             </div>
-            {% endif %}
         </div>
     </div>
 
@@ -291,22 +325,6 @@
 
     <!-- Charts -->
     <div class="charts-grid">
-        <div class="chart-card">
-            <div class="chart-header">
-                <h3 class="chart-title">Daily Trip Trends</h3>
-            </div>
-            <div class="chart-body">
-                {% if daily_trips_chart %}
-                    <div id="dailyTripsChart"></div>
-                {% else %}
-                    <div class="no-data">
-                        <i class="fas fa-chart-line" style="font-size: 48px; margin-bottom: 16px;"></i>
-                        <p>No trip data available for the selected period</p>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-
         <div class="chart-card">
             <div class="chart-header">
                 <h3 class="chart-title">Parking Duration Analysis</h3>
@@ -402,22 +420,6 @@
                 {% endif %}
             </div>
         </div>
-        
-        <div class="chart-card">
-            <div class="chart-header">
-                <h3 class="chart-title">Vehicle Movement Flow</h3>
-            </div>
-            <div class="chart-body">
-                {% if movement_flow_chart %}
-                    <div id="movementFlowChart"></div>
-                {% else %}
-                    <div class="no-data">
-                        <i class="fas fa-project-diagram" style="font-size: 48px; margin-bottom: 16px;"></i>
-                        <p>No movement flow data available</p>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
     </div>
 
     <!-- Driver Performance Table -->
@@ -500,11 +502,6 @@
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
     // Render charts
-    {% if daily_trips_chart %}
-    var dailyTripsData = {{ daily_trips_chart|safe }};
-    Plotly.newPlot('dailyTripsChart', dailyTripsData.data, dailyTripsData.layout, {responsive: true});
-    {% endif %}
-
     {% if parking_duration_chart %}
     var parkingDurationData = {{ parking_duration_chart|safe }};
     Plotly.newPlot('parkingDurationChart', parkingDurationData.data, parkingDurationData.layout, {responsive: true});
@@ -535,26 +532,67 @@
     Plotly.newPlot('avgStayByTypeChart', avgStayByTypeData.data, avgStayByTypeData.layout, {responsive: true});
     {% endif %}
     
-    {% if movement_flow_chart %}
-    var movementFlowData = {{ movement_flow_chart|safe }};
-    Plotly.newPlot('movementFlowChart', movementFlowData.data, movementFlowData.layout, {responsive: true});
-    {% endif %}
+    // Reset all filters function
+    function resetFilters() {
+        // Navigate to analytics page without any parameters
+        window.location.href = '/analytics/';
+    }
     
-    // Organization filter function
-    function filterByOrganization() {
-        const select = document.getElementById('organizationFilter');
-        const selectedOrgId = select.value;
-        
-        // Build URL with organization parameter
+    // Apply all filters function
+    function applyFilters() {
         const url = new URL(window.location.href);
-        if (selectedOrgId) {
-            url.searchParams.set('organization', selectedOrgId);
+        
+        // Get filter values
+        const orgSelect = document.getElementById('organizationFilter');
+        const brandSelect = document.getElementById('brandFilter');
+        const typeSelect = document.getElementById('typeFilter');
+        
+        // Apply organization filter
+        if (orgSelect && orgSelect.value) {
+            url.searchParams.set('organization', orgSelect.value);
         } else {
             url.searchParams.delete('organization');
         }
         
-        // Reload page with new filter
+        // Apply brand filter
+        if (brandSelect.value) {
+            url.searchParams.set('vehicle_brand', brandSelect.value);
+        } else {
+            url.searchParams.delete('vehicle_brand');
+        }
+        
+        // Apply type filter
+        if (typeSelect.value) {
+            url.searchParams.set('vehicle_type', typeSelect.value);
+        } else {
+            url.searchParams.delete('vehicle_type');
+        }
+        
+        // Reload page with new filters
         window.location.href = url.toString();
+    }
+    
+    // Download analytics report function
+    function downloadAnalyticsReport() {
+        const url = new URL('/export-analytics-report/', window.location.origin);
+        
+        // Add all current filters
+        const orgSelect = document.getElementById('organizationFilter');
+        const brandSelect = document.getElementById('brandFilter');
+        const typeSelect = document.getElementById('typeFilter');
+        
+        if (orgSelect && orgSelect.value) {
+            url.searchParams.set('organization', orgSelect.value);
+        }
+        if (brandSelect && brandSelect.value) {
+            url.searchParams.set('vehicle_brand', brandSelect.value);
+        }
+        if (typeSelect && typeSelect.value) {
+            url.searchParams.set('vehicle_type', typeSelect.value);
+        }
+        
+        // Open download in new tab
+        window.open(url.toString(), '_blank');
     }
 </script>
 {% endblock %}

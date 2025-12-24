@@ -63,12 +63,14 @@
         border: 1px solid #e5e7eb;
         border-radius: 12px;
         height: 500px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #9ca3af;
-        font-size: 16px;
+        position: relative;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    #map {
+        width: 100%;
+        height: 100%;
+        border-radius: 12px;
     }
 
     .tracking-sidebar {
@@ -139,8 +141,7 @@
 
     <div class="tracking-grid">
         <div class="map-container">
-            🗺️ Interactive Map View
-            <br><small>Map integration would be implemented here</small>
+            <div id="map"></div>
         </div>
 
         <div class="tracking-sidebar">
@@ -148,15 +149,11 @@
                 <h3>Current Location</h3>
                 <div class="info-item">
                     <span class="info-label">Address</span>
-                    <span class="info-value">Nairobi CBD</span>
+                    <span class="info-value">Green House Mall</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Coordinates</span>
                     <span class="info-value">-1.2921, 36.8219</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Speed</span>
-                    <span class="info-value">0 km/h</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Status</span>
@@ -178,12 +175,63 @@
                     <span class="info-label">Trips</span>
                     <span class="info-value">4</span>
                 </div>
-                <div class="info-item">
-                    <span class="info-label">Fuel Used</span>
-                    <span class="info-value">3.1L</span>
-                </div>
             </div>
         </div>
     </div>
 </div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+// Organization locations with actual vehicle counts from dataset
+const organizations = [
+    { name: "JKIA", lat: -1.3192, lng: 36.9278, vehicles: {{ organizations|length > 0 and organizations.0.name == "JKIA"|yesno:"organizations.0.vehicle_count,0" }} },
+    { name: "KNH", lat: -1.3005, lng: 36.8078, vehicles: {{ organizations|length > 0 and organizations.1.name == "KNH"|yesno:"organizations.1.vehicle_count,0" }} },
+    { name: "Green House Mall", lat: -1.2921, lng: 36.8219, vehicles: {{ organizations|length > 0 and organizations.2.name == "Green House Mall"|yesno:"organizations.2.vehicle_count,0" }}, current: true },
+    { name: "Greenspan Mall", lat: -1.2634, lng: 36.8047, vehicles: {{ organizations|length > 0 and organizations.3.name == "Greenspan Mall"|yesno:"organizations.3.vehicle_count,0" }} },
+    { name: "United Mall", lat: -1.2841, lng: 36.8155, vehicles: {{ organizations|length > 0 and organizations.4.name == "United Mall"|yesno:"organizations.4.vehicle_count,0" }} }
+];
+
+const map = L.map('map').setView([-1.2921, 36.8219], 12);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+}).addTo(map);
+
+// Add organization markers
+organizations.forEach(org => {
+    const icon = L.divIcon({
+        html: `<div style="background: #dc2626; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+    });
+    
+    L.marker([org.lat, org.lng], {icon})
+        .addTo(map)
+        .bindPopup(`<b>${org.name}</b><br>Vehicles: ${org.vehicles}${org.current ? '<br><span style="color: #dc2626;">Current Location</span>' : ''}`);
+});
+
+// Add distance lines between organizations
+const currentOrg = organizations.find(org => org.current);
+organizations.forEach(org => {
+    if (!org.current) {
+        const distance = calculateDistance(currentOrg.lat, currentOrg.lng, org.lat, org.lng);
+        L.polyline([[currentOrg.lat, currentOrg.lng], [org.lat, org.lng]], {
+            color: '#6b7280',
+            weight: 2,
+            opacity: 0.6,
+            dashArray: '5, 10'
+        }).addTo(map).bindTooltip(`${distance.toFixed(1)} km`, {permanent: false, direction: 'center'});
+    }
+});
+
+function calculateDistance(lat1, lng1, lat2, lng2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng/2) * Math.sin(dLng/2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+</script>
 {% endblock %}

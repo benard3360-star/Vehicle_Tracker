@@ -1,7 +1,7 @@
 # urls.py - Update with profile URLs
 
 from django.urls import path
-from . import views
+from . import views, api_views
 
 urlpatterns = [
     # Authentication
@@ -33,6 +33,7 @@ urlpatterns = [
     path('super-admin/organizations/', views.super_admin_organizations_view, name='super_admin_organizations'),
     path('super-admin/users/', views.super_admin_users_view, name='super_admin_users'),
     path('super-admin/activities/', views.super_admin_activities_view, name='super_admin_activities'),
+    path('vehicle-alert/', views.vehicle_alert, name='vehicle_alert'),
     
     # Super Admin API Endpoints
     path('super-admin/create-org/', views.super_admin_create_organization, name='super_admin_create_org'),
@@ -61,9 +62,13 @@ urlpatterns = [
     # Vehicle Analytics API
     path('api/vehicle-analytics/', views.vehicle_analytics_api, name='vehicle_analytics_api'),
     
+    # REST API Endpoints
+    path('api/vehicles/search/', api_views.VehicleSearchAPIView.as_view(), name='vehicle_search_api'),
+    
     # Admin Module Views (for admin roles)
     path('analytics/', views.analytics, name='analytics'),
     path('analytics/generate-sample-data/', views.generate_sample_data, name='generate_sample_data'),
+    path('export-analytics-report/', views.export_analytics_report, name='export_analytics_report'),
     path('inventory/', views.inventory, name='inventory'),
     path('inventory/add/', views.add_inventory_item, name='add_inventory_item'),
     path('inventory/export/', views.export_inventory_report, name='export_inventory_report'),

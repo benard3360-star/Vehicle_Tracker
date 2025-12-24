@@ -21,18 +21,30 @@ except ImportError:
 class VehicleAnalytics:
     """Main analytics class for vehicle data"""
     
-    def __init__(self, organization=None):
+    def __init__(self, organization=None, vehicle_brand=None, vehicle_type=None):
         self.organization = organization
+        self.vehicle_brand = vehicle_brand
+        self.vehicle_type = vehicle_type
     
+    def _apply_filters(self, queryset):
+        """Apply common filters to ParkingRecord queryset"""
+        if self.organization:
+            queryset = queryset.filter(organization=self.organization.name)
+        if self.vehicle_brand:
+            queryset = queryset.filter(vehicle_brand=self.vehicle_brand)
+        if self.vehicle_type:
+            queryset = queryset.filter(vehicle_type=self.vehicle_type)
+        return queryset
     def get_fleet_summary(self, days=30):
         """Get fleet summary analytics"""
         end_date = timezone.now().date()
         start_date = end_date - timedelta(days=days)
         
-        # Base queryset
-        vehicles_qs = Vehicle.objects.filter(is_active=True)
-        if self.organization:
-            vehicles_qs = vehicles_qs.filter(organization=self.organization)
+        # Get filtered vehicle count from ParkingRecord
+        from .models import ParkingRecord
+        parking_qs = ParkingRecord.objects.all()
+        parking_qs = self._apply_filters(parking_qs)
+        total_vehicles = parking_qs.values('plate_number').distinct().count()
         
         movements_qs = VehicleMovement.objects.filter(
             start_time__date__gte=start_date,
@@ -43,8 +55,7 @@ class VehicleAnalytics:
             movements_qs = movements_qs.filter(vehicle__organization=self.organization)
         
         # Calculate metrics
-        total_vehicles = vehicles_qs.count()
-        active_vehicles = movements_qs.values('vehicle').distinct().count()
+        active_vehicles = movements_qs.values('vehicle__license_plate').distinct().count()
         total_trips = movements_qs.count()
         avg_parking_duration = movements_qs.aggregate(Avg('duration_minutes'))['duration_minutes__avg'] or 0
         
@@ -56,78 +67,25 @@ class VehicleAnalytics:
             'utilization_rate': round((active_vehicles / total_vehicles) * 100, 1) if total_vehicles > 0 else 0
         }
     
-    def get_daily_trips_chart(self, days=7):
-        """Generate daily trips chart data - limited to 7 days for performance"""
-        end_date = timezone.now().date()
-        start_date = end_date - timedelta(days=days)
-        
-        # Use Django ORM with select_related for performance
-        movements_qs = VehicleMovement.objects.select_related('vehicle__organization').filter(
-            start_time__date__gte=start_date,
-            start_time__date__lte=end_date,
-            trip_status='completed'
-        )
-        
-        if self.organization:
-            movements_qs = movements_qs.filter(vehicle__organization=self.organization)
-        
-        # Group by date and aggregate
-        from django.db.models import Count
-        from django.db.models.functions import TruncDate
-        
-        daily_data = movements_qs.annotate(
-            trip_date=TruncDate('start_time')
-        ).values('trip_date').annotate(
-            trip_count=Count('id')
-        ).order_by('trip_date')
-        
-        if not daily_data:
-            return json.dumps({}, cls=PlotlyJSONEncoder)
-        
-        # Convert to lists for plotting
-        dates = [item['trip_date'] for item in daily_data]
-        counts = [item['trip_count'] for item in daily_data]
-        
-        # Create chart
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(
-            x=dates,
-            y=counts,
-            mode='lines+markers',
-            name='Daily Trips',
-            line=dict(color='#22c55e', width=3)
-        ))
-        
-        fig.update_layout(
-            title='Daily Trip Count (Last 7 Days)',
-            xaxis_title='Date',
-            yaxis_title='Number of Trips',
-            template='plotly_white',
-            height=400
-        )
-        
-        return json.dumps(fig, cls=PlotlyJSONEncoder)
-    
+
     def get_parking_duration_chart(self, days=30):
         """Generate parking duration analysis chart"""
         end_date = timezone.now().date()
         start_date = end_date - timedelta(days=days)
         
-        # Use Django ORM
-        movements_qs = VehicleMovement.objects.filter(
-            start_time__date__gte=start_date,
-            start_time__date__lte=end_date,
-            trip_status='completed'
+        # Use filtered ParkingRecord data
+        from .models import ParkingRecord
+        parking_qs = ParkingRecord.objects.filter(
+            entry_time__date__gte=start_date,
+            entry_time__date__lte=end_date
         )
-        
-        if self.organization:
-            movements_qs = movements_qs.filter(vehicle__organization=self.organization)
+        parking_qs = self._apply_filters(parking_qs)
         
         # Group by organization and calculate average parking duration
-        org_data = movements_qs.values(
-            'vehicle__organization__name'
+        org_data = parking_qs.values(
+            'organization'
         ).annotate(
-            avg_duration=Avg('duration_minutes'),
+            avg_duration=Avg('parking_duration_minutes'),
             total_visits=Count('id')
         ).order_by('-avg_duration')[:10]
         
@@ -135,7 +93,7 @@ class VehicleAnalytics:
             return json.dumps({}, cls=PlotlyJSONEncoder)
         
         # Prepare data for plotting
-        org_names = [item['vehicle__organization__name'] for item in org_data]
+        org_names = [item['organization'] for item in org_data]
         avg_durations = [float(item['avg_duration'] or 0) for item in org_data]
         
         # Create bar chart
@@ -162,24 +120,24 @@ class VehicleAnalytics:
     def get_hourly_entries_chart(self, organization=None):
         """Generate hourly site entries line chart - optimized query"""
         from django.db.models.functions import Extract
+        from .models import ParkingRecord
         
-        # Use aggregated query instead of loading all data
-        movements_qs = VehicleMovement.objects.select_related('vehicle__organization')
-        if organization:
-            movements_qs = movements_qs.filter(vehicle__organization=organization)
+        # Use filtered ParkingRecord data
+        parking_qs = ParkingRecord.objects.all()
+        parking_qs = self._apply_filters(parking_qs)
         
         # Limit to recent data for performance
         recent_date = timezone.now().date() - timedelta(days=30)
-        movements_qs = movements_qs.filter(start_time__date__gte=recent_date)
+        parking_qs = parking_qs.filter(entry_time__date__gte=recent_date)
         
         # Group by organization and hour
-        hourly_data = movements_qs.annotate(
-            entry_hour=Extract('start_time', 'hour')
+        hourly_data = parking_qs.annotate(
+            entry_hour=Extract('entry_time', 'hour')
         ).values(
-            'vehicle__organization__name', 'entry_hour'
+            'organization', 'entry_hour'
         ).annotate(
             vehicle_count=Count('id')
-        ).order_by('vehicle__organization__name', 'entry_hour')
+        ).order_by('organization', 'entry_hour')
         
         if not hourly_data:
             return json.dumps({}, cls=PlotlyJSONEncoder)
@@ -208,98 +166,116 @@ class VehicleAnalytics:
         return json.dumps(fig, cls=PlotlyJSONEncoder)
     
     def get_vehicles_per_site_chart(self, organization=None):
-        """Generate vehicles per site bar chart"""
-        vehicles = Vehicle.objects.all()
-        if organization:
-            vehicles = vehicles.filter(organization=organization)
+        """Generate vehicles per organization pie chart"""
+        from .models import ParkingRecord
+        from django.db.models import Count
         
-        # Get unique vehicles per organization
-        data = []
-        if organization:
+        # Get filtered vehicle counts from ParkingRecord
+        parking_qs = ParkingRecord.objects.all()
+        parking_qs = self._apply_filters(parking_qs)
+        
+        if self.organization:
             # For single organization, show vehicle count
-            count = vehicles.count()
-            data.append({
-                'organization': organization.name,
+            count = parking_qs.values('plate_number').distinct().count()
+            data = [{
+                'organization': self.organization.name,
                 'vehicles': count
-            })
+            }]
         else:
-            # For all organizations
-            from .models import Organization
-            for org in Organization.objects.all():
-                count = vehicles.filter(organization=org).count()
+            # For all organizations (or filtered data)
+            data = []
+            vehicle_counts = parking_qs.values(
+                'organization'
+            ).annotate(
+                vehicles=Count('plate_number', distinct=True)
+            ).order_by('-vehicles')
+            
+            for item in vehicle_counts:
                 data.append({
-                    'organization': org.name,
-                    'vehicles': count
+                    'organization': item['organization'],
+                    'vehicles': item['vehicles']
                 })
         
         if not data:
             return json.dumps({}, cls=PlotlyJSONEncoder)
         
-        df = pd.DataFrame(data)
+        # Prepare data for pie chart
+        org_names = [item['organization'] for item in data]
+        vehicle_counts = [item['vehicles'] for item in data]
         
-        fig = px.bar(
-            df,
-            x="organization",
-            y="vehicles",
-            title="Unique Vehicles per Organization",
-            labels={"organization": "Organization", "vehicles": "Number of Vehicles"},
-            color="vehicles",
-            color_continuous_scale="Greens"
-        )
+        # Create pie chart
+        fig = go.Figure(data=[
+            go.Pie(
+                labels=org_names,
+                values=vehicle_counts,
+                name='Vehicles',
+                hovertemplate='<b>%{label}</b><br>Vehicles: %{value}<br>Percentage: %{percent}<extra></extra>',
+                textinfo='label+percent',
+                textposition='auto'
+            )
+        ])
         
         fig.update_layout(
+            title='Vehicle Distribution by Organization',
+            template='plotly_white',
             height=400,
-            showlegend=False,
-            xaxis_title="Organization",
-            yaxis_title="Number of Vehicles"
+            showlegend=True,
+            legend=dict(
+                orientation="v",
+                yanchor="middle",
+                y=0.5,
+                xanchor="left",
+                x=1.05
+            )
         )
         
         return json.dumps(fig, cls=PlotlyJSONEncoder)
     
     def get_revenue_per_site_chart(self, organization=None):
-        """Generate parking revenue per site bar chart"""
+        """Generate parking revenue per organization bar chart"""
         from django.db.models import Sum
+        from .models import ParkingRecord
         
-        # Get revenue from parking payments
-        if organization:
-            revenue_data = VehicleMovement.objects.filter(
-                vehicle__organization=organization
-            ).values(
-                'vehicle__organization__name'
-            ).annotate(
-                total_revenue=Sum('fuel_cost')  # This will be mapped from Amount Paid
-            ).order_by('-total_revenue')
-        else:
-            revenue_data = VehicleMovement.objects.values(
-                'vehicle__organization__name'
-            ).annotate(
-                total_revenue=Sum('fuel_cost')  # This will be mapped from Amount Paid
-            ).order_by('-total_revenue')
+        # Get filtered revenue from parking records
+        parking_qs = ParkingRecord.objects.all()
+        parking_qs = self._apply_filters(parking_qs)
+        
+        revenue_data = parking_qs.values(
+            'organization'
+        ).annotate(
+            total_revenue=Sum('amount_paid')
+        ).order_by('-total_revenue')
         
         if not revenue_data:
             return json.dumps({}, cls=PlotlyJSONEncoder)
         
         # Prepare data
-        org_names = [item['vehicle__organization__name'] for item in revenue_data if item['total_revenue']]
+        org_names = [item['organization'] for item in revenue_data if item['total_revenue']]
         revenues = [float(item['total_revenue'] or 0) for item in revenue_data if item['total_revenue']]
         
         if not org_names:
             return json.dumps({}, cls=PlotlyJSONEncoder)
         
-        fig = px.bar(
-            x=org_names,
-            y=revenues,
-            title='Parking Revenue per Organization',
-            labels={'x': 'Organization', 'y': 'Revenue (KSh)'},
-            color=revenues,
-            color_continuous_scale='Greens'
-        )
+        # Create bar chart
+        fig = go.Figure(data=[
+            go.Bar(
+                x=org_names,
+                y=revenues,
+                name='Revenue',
+                marker_color='#16a34a',
+                hovertemplate='<b>%{x}</b><br>Revenue: KSh %{y:,.0f}<extra></extra>'
+            )
+        ])
         
         fig.update_layout(
-            height=400,
-            showlegend=False,
+            title='Revenue per Organization',
             xaxis_title='Organization',
-            yaxis_title='Revenue (KSh)'
+            yaxis_title='Revenue (KSh)',
+            template='plotly_white',
+            height=400,
+            xaxis_tickangle=-45,
+            showlegend=False,
+            yaxis=dict(type='log')
         )
         
         return json.dumps(fig, cls=PlotlyJSONEncoder)
@@ -307,15 +283,15 @@ class VehicleAnalytics:
     def get_visit_patterns_chart(self, organization=None):
         """Generate visit patterns chart - optimized with aggregation"""
         from django.db.models import Case, When, IntegerField
+        from .models import ParkingRecord
         
-        # Use aggregated query to count visits per vehicle
-        vehicles_qs = Vehicle.objects.all()
-        if organization:
-            vehicles_qs = vehicles_qs.filter(organization=organization)
+        # Get filtered parking records and count visits per plate
+        parking_qs = ParkingRecord.objects.all()
+        parking_qs = self._apply_filters(parking_qs)
         
-        # Get visit counts per vehicle using subquery
-        visit_counts = vehicles_qs.annotate(
-            visit_count=Count('movements')
+        # Count visits per vehicle plate
+        visit_counts = parking_qs.values('plate_number').annotate(
+            visit_count=Count('id')
         ).annotate(
             visit_group=Case(
                 When(visit_count=1, then=Value('1')),
@@ -324,7 +300,7 @@ class VehicleAnalytics:
                 output_field=CharField()
             )
         ).values('visit_group').annotate(
-            vehicle_count=Count('id')
+            vehicle_count=Count('plate_number')
         ).order_by('visit_group')
         
         if not visit_counts:
@@ -354,33 +330,32 @@ class VehicleAnalytics:
     
     def get_avg_stay_by_type_chart(self, organization=None):
         """Generate average stay by vehicle type chart"""
-        movements = VehicleMovement.objects.filter(trip_status='completed')
-        if organization:
-            movements = movements.filter(vehicle__organization=organization)
+        from .models import ParkingRecord
         
-        # Group by vehicle fuel type and calculate average duration
-        data = []
-        for movement in movements:
-            if movement.duration_minutes > 0:
-                data.append({
-                    'vehicle_type': movement.vehicle.fuel_type,
-                    'duration_minutes': movement.duration_minutes
-                })
+        # Get filtered parking records
+        parking_qs = ParkingRecord.objects.all()
+        parking_qs = self._apply_filters(parking_qs)
+        parking_qs = parking_qs.filter(parking_duration_minutes__gt=0)
         
-        if not data:
+        # Group by vehicle type and calculate average duration
+        type_data = parking_qs.values('vehicle_type').annotate(
+            avg_stay_min=Avg('parking_duration_minutes'),
+            total_visits=Count('id')
+        ).order_by('-avg_stay_min')
+        
+        if not type_data:
             return json.dumps({}, cls=PlotlyJSONEncoder)
         
-        df = pd.DataFrame(data)
-        avg_stay = df.groupby('vehicle_type')['duration_minutes'].mean().reset_index()
-        avg_stay.columns = ['vehicle_type', 'avg_stay_min']
+        # Prepare data for plotting
+        vehicle_types = [item['vehicle_type'] for item in type_data]
+        avg_stays = [float(item['avg_stay_min'] or 0) for item in type_data]
         
         fig = px.bar(
-            avg_stay,
-            x='vehicle_type',
-            y='avg_stay_min',
+            x=vehicle_types,
+            y=avg_stays,
             title='Average Stay Duration by Vehicle Type',
-            labels={'vehicle_type': 'Vehicle Type', 'avg_stay_min': 'Average Stay (Minutes)'},
-            color='avg_stay_min',
+            labels={'x': 'Vehicle Type', 'y': 'Average Stay (Minutes)'},
+            color=avg_stays,
             color_continuous_scale='Oranges'
         )
         
@@ -393,61 +368,7 @@ class VehicleAnalytics:
         
         return json.dumps(fig, cls=PlotlyJSONEncoder)
     
-    def get_movement_flow_chart(self, organization=None):
-        """Generate vehicle movement flow Sankey diagram"""
-        movements = VehicleMovement.objects.filter(trip_status='completed')
-        if organization:
-            movements = movements.filter(vehicle__organization=organization)
-        
-        # Get movement flows between locations
-        flow_data = []
-        for movement in movements:
-            if movement.start_location and movement.end_location:
-                flow_data.append({
-                    'source': movement.start_location,
-                    'target': movement.end_location,
-                    'vehicle_id': movement.vehicle.vehicle_id
-                })
-        
-        if not flow_data:
-            return json.dumps({}, cls=PlotlyJSONEncoder)
-        
-        df = pd.DataFrame(flow_data)
-        
-        # Count flows between locations
-        flow_counts = df.groupby(['source', 'target']).size().reset_index(name='count')
-        
-        # Get top 10 flows to avoid clutter
-        top_flows = flow_counts.nlargest(10, 'count')
-        
-        # Create nodes
-        all_locations = pd.concat([top_flows['source'], top_flows['target']]).unique()
-        node_dict = {loc: i for i, loc in enumerate(all_locations)}
-        
-        # Create Sankey diagram
-        fig = go.Figure(data=[go.Sankey(
-            node=dict(
-                pad=15,
-                thickness=20,
-                line=dict(color='black', width=0.5),
-                label=all_locations.tolist(),
-                color='lightblue'
-            ),
-            link=dict(
-                source=[node_dict[src] for src in top_flows['source']],
-                target=[node_dict[tgt] for tgt in top_flows['target']],
-                value=top_flows['count'].tolist()
-            )
-        )])
-        
-        fig.update_layout(
-            title_text='Vehicle Movement Flow',
-            font_size=10,
-            height=400
-        )
-        
-        return json.dumps(fig, cls=PlotlyJSONEncoder)
-    
+
     def get_route_analysis(self, days=30):
         """Analyze most frequent routes"""
         end_date = timezone.now().date()
@@ -575,14 +496,12 @@ class VehicleAnalytics:
         """Get complete analytics summary"""
         return {
             'fleet_summary': self.get_fleet_summary(),
-            'daily_trips_chart': self.get_daily_trips_chart(),
             'parking_duration_chart': self.get_parking_duration_chart(),
             'hourly_entries_chart': self.get_hourly_entries_chart(organization),
             'vehicles_per_site_chart': self.get_vehicles_per_site_chart(organization),
             'revenue_per_site_chart': self.get_revenue_per_site_chart(organization),
             'visit_patterns_chart': self.get_visit_patterns_chart(organization),
             'avg_stay_by_type_chart': self.get_avg_stay_by_type_chart(organization),
-            'movement_flow_chart': self.get_movement_flow_chart(organization),
             'route_analysis': self.get_route_analysis(),
             'driver_performance': self.get_driver_performance(),
             'cost_analysis': self.get_cost_analysis()

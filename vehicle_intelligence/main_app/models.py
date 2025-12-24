@@ -651,6 +651,37 @@ class Vehicle(models.Model):
         return f"{self.make} {self.model} ({self.vehicle_id})"
 
 
+class ParkingRecord(models.Model):
+    """Parking records from your Excel data"""
+    plate_number = models.CharField(max_length=20)
+    entry_time = models.DateTimeField()
+    exit_time = models.DateTimeField(null=True, blank=True)
+    vehicle_type = models.CharField(max_length=50)
+    plate_color = models.CharField(max_length=30)
+    vehicle_brand = models.CharField(max_length=50)
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_time = models.DateTimeField(null=True, blank=True)
+    payment_method = models.CharField(max_length=30)
+    organization = models.CharField(max_length=100)
+    
+    # Computed fields
+    parking_duration_minutes = models.IntegerField(null=True, blank=True)
+    parking_status = models.CharField(max_length=20, default='completed')
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'parking_records'
+        ordering = ['-entry_time']
+        indexes = [
+            models.Index(fields=['plate_number', 'entry_time']),
+            models.Index(fields=['organization', 'entry_time']),
+        ]
+    
+    def __str__(self):
+        return f"{self.plate_number} - {self.organization} ({self.entry_time})"
+
+
 class VehicleMovement(models.Model):
     """Vehicle movement/trip data for analytics"""
     vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name='movements')

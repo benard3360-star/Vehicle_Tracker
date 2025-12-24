@@ -840,7 +840,7 @@
             padding: 25px;
             min-height: calc(100vh - var(--header-height) - var(--footer-height));
             flex: 1;
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 248, 240, 0.95) 100%);
+            background: linear-gradient(180deg, #f5f5f5 0%, #e8e8e8 100%);
             padding-left: calc(25px + var(--safe-area-left));
             padding-right: calc(25px + var(--safe-area-right));
             padding-bottom: calc(25px + var(--safe-area-bottom));
@@ -1335,7 +1335,7 @@
             }
             
             .content-wrapper {
-                background: linear-gradient(180deg, rgba(30, 30, 30, 0.95) 0%, rgba(26, 44, 26, 0.95) 100%);
+                background: linear-gradient(180deg, #f0f0f0 0%, #e0e0e0 100%);
             }
         }
         
@@ -1451,6 +1451,12 @@
                         <a href="{% url 'super_admin_activities' %}" class="nav-link {% if request.resolver_match.url_name == 'super_admin_activities' %}active{% endif %}">
                             <div class="nav-icon"><i class="fas fa-history"></i></div>
                             <span class="nav-text">Activities</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'vehicle_alert' %}" class="nav-link {% if request.resolver_match.url_name == 'vehicle_alert' %}active{% endif %}">
+                            <div class="nav-icon"><i class="fas fa-search"></i></div>
+                            <span class="nav-text">Vehicle Alert</span>
                         </a>
                     </li>
                     {% endif %}
