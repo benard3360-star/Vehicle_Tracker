@@ -1,6 +1,5 @@
 # ai_assistant.py
 import json
-import openai
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -11,13 +10,21 @@ from django.db.models import Count, Sum, Avg, Q
 from datetime import datetime, timedelta
 import logging
 
+# Optional OpenAI import
+try:
+    import openai
+    OPENAI_AVAILABLE = True
+except ImportError:
+    openai = None
+    OPENAI_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 class AIAssistant:
     def __init__(self):
         # Initialize OpenAI client when API key is available
         self.client = None
-        if hasattr(settings, 'OPENAI_API_KEY') and settings.OPENAI_API_KEY:
+        if OPENAI_AVAILABLE and hasattr(settings, 'OPENAI_API_KEY') and settings.OPENAI_API_KEY:
             openai.api_key = settings.OPENAI_API_KEY
             self.client = openai
 
@@ -128,7 +135,7 @@ class AIAssistant:
 
     def generate_ai_response(self, message, context):
         """Generate AI response using OpenAI API or fallback"""
-        if self.client:
+        if self.client and OPENAI_AVAILABLE:
             return self._generate_openai_response(message, context)
         else:
             return self._generate_fallback_response(message, context)
@@ -307,7 +314,7 @@ class AIAssistant:
 
     def generate_detailed_report(self, context, report_type='comprehensive'):
         """Generate detailed AI-powered reports"""
-        if self.client:
+        if self.client and OPENAI_AVAILABLE:
             return self._generate_ai_report(context, report_type)
         else:
             return self._generate_fallback_report(context, report_type)
