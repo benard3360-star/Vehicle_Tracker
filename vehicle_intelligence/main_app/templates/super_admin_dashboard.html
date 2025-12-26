@@ -106,7 +106,7 @@
     border: none;
     font-size: 14px;
     font-weight: 700;
-    color: #000000;
+    color: #111827;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -261,7 +261,7 @@
     padding: 15px;
     border-bottom: 1px solid #e2e8f0;
     vertical-align: middle;
-    color: #000000;
+    color: #111827;
     font-weight: 500;
 }
 
@@ -416,7 +416,7 @@
 
 .activity-description {
     margin: 0 0 8px 0;
-    color: #374151;
+    color: #111827;
     word-break: break-word;
 }
 
@@ -539,7 +539,7 @@
     display: block;
     margin-bottom: 8px;
     font-weight: 500;
-    color: #374151;
+    color: #111827;
 }
 
 .form-group .form-control, .form-group .form-select {
@@ -915,6 +915,9 @@ input:checked + .toggle-slider:before {
             <button class="tab-btn" data-tab="system">
                 <i class="fas fa-cogs"></i> System Settings
             </button>
+            <button class="tab-btn" data-tab="vehicle-tracking">
+                <i class="fas fa-car"></i> Vehicle Tracking
+            </button>
         </div>
 
         <!-- Organizations Tab -->
@@ -1204,6 +1207,101 @@ input:checked + .toggle-slider:before {
                     <button class="btn btn-warning" onclick="backupSystem()">
                         <i class="fas fa-download"></i> Backup Now
                     </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vehicle Tracking Tab -->
+        <div class="tab-content" id="vehicle-tracking-tab">
+            <div class="tab-header-actions">
+                <h3><i class="fas fa-car"></i> Vehicle Analytics Search</h3>
+                <p>Search for any vehicle by license plate to view detailed analytics and movement history</p>
+            </div>
+            
+            <div style="background: white; padding: 24px; border-radius: 12px; margin-bottom: 24px; border: 1px solid #e2e8f0;">
+                <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 24px;">
+                    <input type="text" id="adminPlateSearch" placeholder="Enter License Plate (e.g., KDD271S)" 
+                           style="padding: 12px 16px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; font-weight: 500; text-transform: uppercase; min-width: 250px;">
+                    <button onclick="adminSearchVehicle()" 
+                            style="padding: 12px 24px; background: #16a34a; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                        <i class="fas fa-search"></i> Search Vehicle
+                    </button>
+                    <button onclick="adminResetSearch()" 
+                            style="padding: 12px 20px; background: #6b7280; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                        <i class="fas fa-refresh"></i> Reset
+                    </button>
+                </div>
+                
+                <div id="adminVehicleResults" style="display: none;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                        <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 700; color: #111827; margin-bottom: 4px;" id="adminTotalVisits">-</div>
+                            <div style="font-size: 12px; color: #6b7280; font-weight: 600; text-transform: uppercase;">Total Visits</div>
+                        </div>
+                        <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 700; color: #111827; margin-bottom: 4px;" id="adminTotalAmount">-</div>
+                            <div style="font-size: 12px; color: #6b7280; font-weight: 600; text-transform: uppercase;">Total Amount</div>
+                        </div>
+                        <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 700; color: #111827; margin-bottom: 4px;" id="adminTotalDistance">-</div>
+                            <div style="font-size: 12px; color: #6b7280; font-weight: 600; text-transform: uppercase;">Total Distance</div>
+                        </div>
+                        <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 700; color: #111827; margin-bottom: 4px;" id="adminUniqueDestinations">-</div>
+                            <div style="font-size: 12px; color: #6b7280; font-weight: 600; text-transform: uppercase;">Destinations</div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px;">
+                        <h4 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #111827;">Destinations Breakdown</h4>
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                                <thead>
+                                    <tr style="background: #f3f4f6;">
+                                        <th style="padding: 10px 8px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #111827;">Destination</th>
+                                        <th style="padding: 10px 8px; text-align: center; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #111827;">Visits</th>
+                                        <th style="padding: 10px 8px; text-align: center; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #111827;">Total Time</th>
+                                        <th style="padding: 10px 8px; text-align: center; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #111827;">Avg Time</th>
+                                        <th style="padding: 10px 8px; text-align: center; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #111827;">Amount</th>
+                                        <th style="padding: 10px 8px; text-align: center; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #111827;">Last Visit</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminDestinationsTableBody">
+                                    <tr>
+                                        <td colspan="6" style="padding: 20px; text-align: center; color: #6b7280;">Search for a vehicle to see destinations</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-top: 20px;">
+                        <h4 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #111827;">Recent Trips</h4>
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                                <thead>
+                                    <tr style="background: #f3f4f6;">
+                                        <th style="padding: 10px 8px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #111827;">Date</th>
+                                        <th style="padding: 10px 8px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #111827;">From</th>
+                                        <th style="padding: 10px 8px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #111827;">To</th>
+                                        <th style="padding: 10px 8px; text-align: center; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #111827;">Distance</th>
+                                        <th style="padding: 10px 8px; text-align: center; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #111827;">Duration</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminRecentTripsTableBody">
+                                    <tr>
+                                        <td colspan="5" style="padding: 20px; text-align: center; color: #6b7280;">Search for a vehicle to see recent trips</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="adminNoResults" style="display: none; text-align: center; padding: 40px; color: #6b7280;">
+                    <i class="fas fa-car" style="font-size: 48px; margin-bottom: 16px; opacity: 0.3;"></i>
+                    <h4 style="color: #6b7280; margin-bottom: 8px;">No Vehicle Data Found</h4>
+                    <p>We couldn't find any parking records for this license plate number.</p>
                 </div>
             </div>
         </div>
@@ -1932,21 +2030,21 @@ function loadOrganizations(page = 1) {
                 data.organizations.forEach(org => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td>${org.id}</td>
-                        <td>
+                        <td style="color: #111827;">${org.id}</td>
+                        <td style="color: #111827;">
                             <strong>${org.name}</strong>
                             <br><small class="text-muted">${org.slug}</small>
                         </td>
-                        <td>${org.email}</td>
-                        <td>${org.phone || '-'}</td>
+                        <td style="color: #111827;">${org.email}</td>
+                        <td style="color: #111827;">${org.phone || '-'}</td>
                         <td>
                             <span class="status-badge ${org.is_active ? 'active' : 'inactive'}">
                                 ${org.status}
                             </span>
                         </td>
-                        <td>${new Date(org.created_at).toLocaleDateString()}</td>
-                        <td>${org.user_count}</td>
-                        <td>${org.admin_name}</td>
+                        <td style="color: #111827;">${new Date(org.created_at).toLocaleDateString()}</td>
+                        <td style="color: #111827;">${org.user_count}</td>
+                        <td style="color: #111827;">${org.admin_name}</td>
                         <td class="actions">
                             <button class="btn-icon btn-edit" title="Edit" onclick="showEditOrganizationModal(${org.id})">
                                 <i class="fas fa-edit"></i>
@@ -2015,8 +2113,8 @@ function loadUsers(page = 1) {
                 data.users.forEach(user => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td>${user.id}</td>
-                        <td>
+                        <td style="color: #111827;">${user.id}</td>
+                        <td style="color: #111827;">
                             <strong>${user.username}</strong>
                             ${user.first_name || user.last_name ? `<br><small>${user.first_name} ${user.last_name}</small>` : ''}
                         </td>
@@ -2025,9 +2123,9 @@ function loadUsers(page = 1) {
                                 ${user.role_display}
                             </span>
                         </td>
-                        <td>${user.organization || '-'}</td>
-                        <td>${user.email}</td>
-                        <td>${user.last_active || 'Never'}</td>
+                        <td style="color: #111827;">${user.organization || '-'}</td>
+                        <td style="color: #111827;">${user.email}</td>
+                        <td style="color: #111827;">${user.last_active || 'Never'}</td>
                         <td>
                             <span class="status-badge ${user.is_active ? 'active' : 'inactive'}">
                                 ${user.is_active ? 'Active' : 'Inactive'}
@@ -2138,16 +2236,16 @@ function loadActivities(page = 1) {
                         </div>
                         <div class="activity-content">
                             <div class="activity-header">
-                                <strong>${activity.user.username}</strong>
+                                <strong style="color: #111827;">${activity.user.username}</strong>
                                 <span class="badge badge-${activity.action}">${activity.action_display}</span>
                                 <span class="badge badge-module">${activity.module}</span>
                                 <span class="activity-time">${activity.time_ago}</span>
                             </div>
-                            <p class="activity-description">${activity.description}</p>
+                            <p class="activity-description" style="color: #111827;">${activity.description}</p>
                             <div class="activity-meta">
-                                ${activity.organization ? `<span><i class="fas fa-building"></i> ${activity.organization}</span>` : ''}
-                                ${activity.ip_address ? `<span><i class="fas fa-globe"></i> ${activity.ip_address}</span>` : ''}
-                                ${activity.user_agent ? `<span><i class="fas fa-desktop"></i> ${activity.user_agent.substring(0, 50)}${activity.user_agent.length > 50 ? '...' : ''}</span>` : ''}
+                                ${activity.organization ? `<span style="color: #111827;"><i class="fas fa-building"></i> ${activity.organization}</span>` : ''}
+                                ${activity.ip_address ? `<span style="color: #111827;"><i class="fas fa-globe"></i> ${activity.ip_address}</span>` : ''}
+                                ${activity.user_agent ? `<span style="color: #111827;"><i class="fas fa-desktop"></i> ${activity.user_agent.substring(0, 50)}${activity.user_agent.length > 50 ? '...' : ''}</span>` : ''}
                             </div>
                         </div>
                     `;
@@ -2475,6 +2573,20 @@ document.addEventListener('DOMContentLoaded', () => {
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     document.getElementById('dateFrom').value = sevenDaysAgo.toISOString().split('T')[0];
     
+    // Add vehicle tracking search functionality
+    const adminPlateInput = document.getElementById('adminPlateSearch');
+    if (adminPlateInput) {
+        adminPlateInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                adminSearchVehicle();
+            }
+        });
+        
+        adminPlateInput.addEventListener('input', function(e) {
+            e.target.value = e.target.value.toUpperCase();
+        });
+    }
+    
     // Add CSS for alerts animation
     const style = document.createElement('style');
     style.textContent = `
@@ -2501,5 +2613,136 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     document.head.appendChild(style);
 });
+
+// Admin vehicle search functions
+function adminSearchVehicle() {
+    const plateInput = document.getElementById('adminPlateSearch');
+    const plateNumber = plateInput.value.trim().toUpperCase();
+    
+    if (!plateNumber) {
+        showAlert('warning', 'Please enter a license plate number');
+        return;
+    }
+    
+    fetch(`/api/vehicle-analytics/?plate=${encodeURIComponent(plateNumber)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.analytics) {
+                displayAdminVehicleResults(data.analytics);
+            } else {
+                showAdminNoResults();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('error', 'Error searching for vehicle data');
+            showAdminNoResults();
+        });
+}
+
+function displayAdminVehicleResults(analytics) {
+    document.getElementById('adminVehicleResults').style.display = 'block';
+    document.getElementById('adminNoResults').style.display = 'none';
+    
+    // Calculate total distance between organizations
+    let totalDistance = 0;
+    const organizations = {
+        "JKIA": { lat: -1.3192, lng: 36.9278 },
+        "KNH": { lat: -1.3005, lng: 36.8078 },
+        "Green House Mall": { lat: -1.2921, lng: 36.8219 },
+        "Greenspan Mall": { lat: -1.2634, lng: 36.8047 },
+        "United Mall": { lat: -1.2841, lng: 36.8155 }
+    };
+    
+    // Calculate distances between consecutive destinations
+    for (let i = 1; i < analytics.destinations.length; i++) {
+        const from = organizations[analytics.destinations[i-1].destination];
+        const to = organizations[analytics.destinations[i].destination];
+        if (from && to) {
+            totalDistance += calculateDistance(from.lat, from.lng, to.lat, to.lng);
+        }
+    }
+    
+    document.getElementById('adminTotalVisits').textContent = analytics.total_visits;
+    document.getElementById('adminTotalAmount').textContent = `KSh ${analytics.total_amount.toFixed(2)}`;
+    document.getElementById('adminTotalDistance').textContent = `${totalDistance.toFixed(1)} km`;
+    document.getElementById('adminUniqueDestinations').textContent = analytics.unique_destinations;
+    
+    // Update destinations table
+    const tableBody = document.getElementById('adminDestinationsTableBody');
+    tableBody.innerHTML = '';
+    
+    analytics.destinations.forEach(dest => {
+        const row = document.createElement('tr');
+        row.style.borderBottom = '1px solid #f3f4f6';
+        
+        const totalHours = Math.floor(dest.total_time_hours);
+        const totalMinutes = Math.floor(dest.total_time_minutes % 60);
+        const avgHours = Math.floor(dest.avg_time_hours);
+        const avgMinutes = Math.floor(dest.avg_time_minutes % 60);
+        const lastVisit = new Date(dest.last_visit);
+        
+        row.innerHTML = `
+            <td style="padding: 10px 8px; font-weight: 600; color: #111827;">${dest.destination}</td>
+            <td style="padding: 10px 8px; text-align: center; color: #111827;">${dest.visits}</td>
+            <td style="padding: 10px 8px; text-align: center; color: #111827;">${totalHours}h ${totalMinutes}m</td>
+            <td style="padding: 10px 8px; text-align: center; color: #111827;">${avgHours}h ${avgMinutes}m</td>
+            <td style="padding: 10px 8px; text-align: center; font-weight: 600; color: #111827;">KSh ${dest.total_amount.toLocaleString()}</td>
+            <td style="padding: 10px 8px; text-align: center; font-size: 12px; color: #111827;">${lastVisit.toLocaleDateString()}</td>
+        `;
+        
+        tableBody.appendChild(row);
+    });
+    
+    // Update recent trips table
+    const tripsTableBody = document.getElementById('adminRecentTripsTableBody');
+    tripsTableBody.innerHTML = '';
+    
+    analytics.destinations.forEach((dest, index) => {
+        const row = document.createElement('tr');
+        row.style.borderBottom = '1px solid #f3f4f6';
+        
+        const lastVisit = new Date(dest.last_visit);
+        const fromLocation = index === 0 ? 'Origin' : analytics.destinations[index-1].destination;
+        const distance = index === 0 ? '0.0' : calculateDistance(
+            organizations[analytics.destinations[index-1].destination]?.lat || 0,
+            organizations[analytics.destinations[index-1].destination]?.lng || 0,
+            organizations[dest.destination]?.lat || 0,
+            organizations[dest.destination]?.lng || 0
+        ).toFixed(1);
+        
+        const totalHours = Math.floor(dest.total_time_hours);
+        const totalMinutes = Math.floor(dest.total_time_minutes % 60);
+        
+        row.innerHTML = `
+            <td style="padding: 10px 8px; color: #111827; font-weight: 500;">${lastVisit.toLocaleDateString()}</td>
+            <td style="padding: 10px 8px; color: #111827; font-weight: 500;">${fromLocation}</td>
+            <td style="padding: 10px 8px; color: #111827; font-weight: 500;">${dest.destination}</td>
+            <td style="padding: 10px 8px; text-align: center; color: #111827; font-weight: 500;">${distance} km</td>
+            <td style="padding: 10px 8px; text-align: center; color: #111827; font-weight: 500;">${totalHours}h ${totalMinutes}m</td>
+        `;
+        
+        tripsTableBody.appendChild(row);
+    });
+}
+
+function calculateDistance(lat1, lng1, lat2, lng2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng/2) * Math.sin(dLng/2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function showAdminNoResults() {
+    document.getElementById('adminVehicleResults').style.display = 'none';
+    document.getElementById('adminNoResults').style.display = 'block';
+}
+
+function adminResetSearch() {
+    document.getElementById('adminPlateSearch').value = '';
+    document.getElementById('adminVehicleResults').style.display = 'none';
+    document.getElementById('adminNoResults').style.display = 'none';
+}
 </script>
 {% endblock %}

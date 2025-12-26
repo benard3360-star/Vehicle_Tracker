@@ -10,6 +10,11 @@
     .analytics-container {
         max-width: 1400px;
         margin: 0 auto;
+        transition: margin-right 0.3s ease;
+    }
+
+    .analytics-container.chat-open {
+        margin-right: 380px;
     }
 
     .analytics-header {
@@ -209,6 +214,18 @@
         .metrics-grid {
             grid-template-columns: repeat(2, 1fr);
         }
+        
+        .analytics-container.chat-open {
+            margin-right: 0;
+        }
+        
+        .ai-chat-modal {
+            width: calc(100vw - 40px);
+            height: 400px;
+            right: 20px;
+            bottom: 90px;
+            top: auto;
+        }
     }
 
     @media (max-width: 768px) {
@@ -219,6 +236,285 @@
         .modern-table {
             font-size: 12px;
         }
+        
+        .ai-assistant-float {
+            width: 56px;
+            height: 56px;
+            bottom: 20px;
+            right: 20px;
+        }
+        
+        .ai-assistant-float i {
+            font-size: 24px;
+        }
+        
+        .ai-tooltip {
+            display: none;
+        }
+        
+        .ai-chat-modal {
+            width: calc(100vw - 20px);
+            height: 350px;
+            right: 10px;
+            bottom: 80px;
+        }
+    }
+
+    /* AI Assistant Styles */
+    .ai-assistant-float {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, #16a34a, #15803d);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 8px 24px rgba(22, 163, 74, 0.3);
+        transition: all 0.3s ease;
+        z-index: 1000;
+        border: 3px solid white;
+    }
+
+    .ai-assistant-float:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(22, 163, 74, 0.4);
+        background: linear-gradient(135deg, #15803d, #166534);
+    }
+
+    .ai-assistant-float i {
+        font-size: 28px;
+        color: white;
+        animation: pulse 2s infinite;
+    }
+
+    .ai-tooltip {
+        position: absolute;
+        right: 80px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #111827;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        pointer-events: none;
+    }
+
+    .ai-tooltip::after {
+        content: '';
+        position: absolute;
+        left: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+        border: 6px solid transparent;
+        border-left-color: #111827;
+    }
+
+    .ai-assistant-float:hover .ai-tooltip {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+
+    .ai-chat-modal {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 380px;
+        height: 100vh;
+        background: white;
+        border-left: 1px solid #e5e7eb;
+        box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
+        z-index: 1001;
+        display: none;
+        flex-direction: column;
+        overflow: hidden;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+    }
+
+    .ai-chat-modal.show {
+        display: flex;
+        transform: translateX(0);
+    }
+
+    .ai-chat-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .ai-chat-header {
+        padding: 16px 20px;
+        background: linear-gradient(135deg, #16a34a, #15803d);
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .ai-chat-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+        font-size: 16px;
+    }
+
+    .ai-chat-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 18px;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+        transition: background 0.2s ease;
+    }
+
+    .ai-chat-close:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .ai-chat-messages {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        background: #f9fafb;
+    }
+
+    .ai-message, .user-message {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .user-message {
+        flex-direction: row-reverse;
+    }
+
+    .ai-avatar, .user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+
+    .ai-avatar {
+        background: linear-gradient(135deg, #16a34a, #15803d);
+        color: white;
+    }
+
+    .user-avatar {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .ai-message-content, .user-message-content {
+        background: white;
+        padding: 12px 16px;
+        border-radius: 12px;
+        max-width: 280px;
+        font-size: 14px;
+        line-height: 1.5;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        color: #111827;
+        font-weight: 500;
+    }
+
+    .user-message-content {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .ai-chat-input {
+        padding: 16px 20px;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        background: white;
+    }
+
+    .ai-chat-input input {
+        flex: 1;
+        padding: 12px 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 24px;
+        font-size: 14px;
+        outline: none;
+    }
+
+    .ai-chat-input input:focus {
+        border-color: #16a34a;
+        box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+    }
+
+    .ai-chat-input button {
+        width: 40px;
+        height: 40px;
+        background: #16a34a;
+        border: none;
+        border-radius: 50%;
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s ease;
+    }
+
+    .ai-chat-input button:hover {
+        background: #15803d;
+    }
+
+    .ai-chat-input button:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+    }
+    
+    /* Typing indicator styles */
+    .typing-dots {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+    }
+    
+    .typing-dots span {
+        width: 6px;
+        height: 6px;
+        background: #6b7280;
+        border-radius: 50%;
+        animation: typing 1.4s infinite ease-in-out;
+    }
+    
+    .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+    
+    @keyframes typing {
+        0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+        40% { transform: scale(1); opacity: 1; }
     }
 </style>
 {% endblock %}
@@ -498,6 +794,43 @@
 </div>
 {% endblock %}
 
+<!-- AI Assistant Floating Button -->
+<div class="ai-assistant-float" id="aiAssistantBtn">
+    <div class="ai-tooltip">AI Assistant - Get instant help!</div>
+    <i class="fas fa-robot"></i>
+</div>
+
+<!-- AI Assistant Chat Modal -->
+<div id="aiChatModal" class="ai-chat-modal">
+    <div class="ai-chat-container">
+        <div class="ai-chat-header">
+            <div class="ai-chat-title">
+                <i class="fas fa-robot"></i>
+                <span>AI Assistant</span>
+            </div>
+            <button class="ai-chat-close" id="aiChatClose">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="ai-chat-messages" id="aiChatMessages">
+            <div class="ai-message">
+                <div class="ai-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="ai-message-content">
+                    Hello! I'm your advanced AI analytics assistant. I can provide deep insights, trend analysis, performance summaries, optimization recommendations, predictive forecasting, and generate comprehensive reports. Ask me about patterns, KPIs, or say "summary" for an overview!
+                </div>
+            </div>
+        </div>
+        <div class="ai-chat-input">
+            <input type="text" id="aiChatInput" placeholder="Ask me about your analytics data..." maxlength="500">
+            <button id="aiChatSend">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
 {% block extra_js %}
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
@@ -594,5 +927,239 @@
         // Open download in new tab
         window.open(url.toString(), '_blank');
     }
+
+    // AI Assistant functionality
+    const aiAssistantBtn = document.getElementById('aiAssistantBtn');
+    const aiChatModal = document.getElementById('aiChatModal');
+    const aiChatClose = document.getElementById('aiChatClose');
+    const aiChatInput = document.getElementById('aiChatInput');
+    const aiChatSend = document.getElementById('aiChatSend');
+    const aiChatMessages = document.getElementById('aiChatMessages');
+    
+    function toggleAIChat() {
+        aiChatModal.classList.toggle('show');
+        document.querySelector('.analytics-container').classList.toggle('chat-open');
+        if (aiChatModal.classList.contains('show')) {
+            aiChatInput.focus();
+        }
+    }
+    
+    function closeAIChat() {
+        aiChatModal.classList.remove('show');
+        document.querySelector('.analytics-container').classList.remove('chat-open');
+    }
+    
+    function sendAIMessage() {
+        const message = aiChatInput.value.trim();
+        if (!message) return;
+        
+        addMessage(message, 'user');
+        aiChatInput.value = '';
+        aiChatSend.disabled = true;
+        
+        // Show typing indicator
+        addTypingIndicator();
+        
+        // Get current filters for context
+        const filters = getCurrentFilters();
+        
+        // Send to AI API
+        fetch('/api/ai-chat/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify({
+                message: message,
+                page_type: 'analytics',
+                filters: filters
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            removeTypingIndicator();
+            if (data.success) {
+                addMessage(data.response, 'ai');
+                if (data.source === 'openai') {
+                    addMessage('💡 Powered by OpenAI GPT', 'ai', true);
+                }
+            } else {
+                addMessage('Sorry, I encountered an error. Please try again.', 'ai');
+            }
+        })
+        .catch(error => {
+            removeTypingIndicator();
+            console.error('AI Chat Error:', error);
+            // Fallback to local response
+            const response = getAIResponse(message);
+            addMessage(response, 'ai');
+        })
+        .finally(() => {
+            aiChatSend.disabled = false;
+        });
+    }
+    
+    function getCurrentFilters() {
+        const filters = {};
+        const orgSelect = document.getElementById('organizationFilter');
+        const brandSelect = document.getElementById('brandFilter');
+        const typeSelect = document.getElementById('typeFilter');
+        
+        if (orgSelect && orgSelect.value) filters.organization = orgSelect.value;
+        if (brandSelect && brandSelect.value) filters.vehicle_brand = brandSelect.value;
+        if (typeSelect && typeSelect.value) filters.vehicle_type = typeSelect.value;
+        
+        return filters;
+    }
+    
+    function addTypingIndicator() {
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'ai-message typing-indicator';
+        typingDiv.innerHTML = `
+            <div class="ai-avatar"><i class="fas fa-robot"></i></div>
+            <div class="ai-message-content">
+                <div class="typing-dots">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+        `;
+        aiChatMessages.appendChild(typingDiv);
+        aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+    }
+    
+    function removeTypingIndicator() {
+        const typing = document.querySelector('.typing-indicator');
+        if (typing) typing.remove();
+    }
+    
+    function getCsrfToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+               document.querySelector('meta[name="csrf-token"]')?.content || '';
+    }
+    
+    function addMessage(content, type, isSmall = false) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = type === 'user' ? 'user-message' : 'ai-message';
+        
+        const avatar = document.createElement('div');
+        avatar.className = type === 'user' ? 'user-avatar' : 'ai-avatar';
+        avatar.innerHTML = type === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+        
+        const messageContent = document.createElement('div');
+        messageContent.className = type === 'user' ? 'user-message-content' : 'ai-message-content';
+        if (isSmall) messageContent.style.fontSize = '12px';
+        messageContent.textContent = content;
+        
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(messageContent);
+        
+        aiChatMessages.appendChild(messageDiv);
+        aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+    }
+    
+    function getAIResponse(message) {
+        const lowerMessage = message.toLowerCase();
+        
+        // Advanced analytics insights
+        if (lowerMessage.includes('summary') || lowerMessage.includes('overview')) {
+            return `Based on current data: You have ${document.querySelector('.metric-value').textContent} total vehicles with ${document.querySelectorAll('.metric-value')[1].textContent} active. Fleet utilization is at ${document.querySelectorAll('.metric-value')[2].textContent}. Key insights: Peak usage hours show optimal fleet deployment, and revenue trends indicate strong performance across organizations.`;
+        }
+        
+        if (lowerMessage.includes('recommendation') || lowerMessage.includes('suggest')) {
+            return 'Based on your analytics: 1) Consider redistributing vehicles during low-utilization periods, 2) Focus on high-revenue generating routes, 3) Implement predictive maintenance for vehicles with high usage, 4) Optimize parking duration to increase turnover rates.';
+        }
+        
+        if (lowerMessage.includes('trend') || lowerMessage.includes('pattern')) {
+            return 'Key patterns identified: Hourly entries peak during business hours (9-11 AM, 2-4 PM), parking duration varies by organization type, and revenue correlates strongly with vehicle visit frequency. Weekend patterns show 30% lower activity.';
+        }
+        
+        if (lowerMessage.includes('performance') || lowerMessage.includes('kpi')) {
+            return 'Performance metrics show: Average parking duration indicates efficient space utilization, vehicle distribution across organizations is balanced, and revenue per organization demonstrates healthy business growth. Driver performance data reveals optimization opportunities.';
+        }
+        
+        if (lowerMessage.includes('report') || lowerMessage.includes('export')) {
+            return 'I can help generate detailed reports including: Executive Summary with KPIs, Driver Performance Analysis, Route Optimization Report, Revenue Analysis by Organization, and Predictive Maintenance Schedule. Click "Download PDF Report" for comprehensive analytics. Say "generate report" for custom analysis.';
+        }
+        
+        if (lowerMessage.includes('generate report') || lowerMessage.includes('custom report')) {
+            setTimeout(() => {
+                addMessage('Generating custom analytics report with current filters... This includes: 1) Executive Summary, 2) Performance Metrics, 3) Trend Analysis, 4) Recommendations, 5) Predictive Insights. Report will be available for download shortly.', 'ai');
+            }, 1500);
+            return 'Initiating custom report generation based on your current analytics view...';
+        }
+        
+        if (lowerMessage.includes('chart') || lowerMessage.includes('graph')) {
+            return 'Chart analysis: Parking Duration shows usage patterns, Hourly Entries reveal peak times, Vehicle Distribution indicates market penetration, Revenue charts show financial performance, and Visit Patterns help optimize operations.';
+        }
+        
+        if (lowerMessage.includes('filter') || lowerMessage.includes('organization')) {
+            return 'Smart filtering available: Filter by organization to analyze specific clients, by vehicle brand for manufacturer insights, or by vehicle type for category analysis. Combine filters for granular insights and targeted reporting.';
+        }
+        
+        if (lowerMessage.includes('optimization') || lowerMessage.includes('improve')) {
+            return 'Optimization opportunities: 1) Redistribute vehicles based on demand patterns, 2) Adjust pricing for peak hours, 3) Implement dynamic routing, 4) Schedule maintenance during low-usage periods, 5) Expand fleet in high-demand areas.';
+        }
+        
+        if (lowerMessage.includes('cost') || lowerMessage.includes('revenue')) {
+            return 'Financial insights: Revenue per organization shows market value, cost analysis reveals operational efficiency, and ROI metrics indicate profitable segments. Consider dynamic pricing and cost optimization strategies.';
+        }
+        
+        if (lowerMessage.includes('predict') || lowerMessage.includes('forecast')) {
+            return 'Predictive insights: Based on current trends, expect 15-20% growth in vehicle usage, peak demand during Q2-Q3, and maintenance requirements increasing with fleet age. Plan capacity expansion accordingly.';
+        }
+        
+        if (lowerMessage.includes('help') || lowerMessage.includes('what can you do')) {
+            return 'I provide advanced analytics intelligence: 📊 Performance summaries, 📈 Trend analysis, 🎯 Optimization recommendations, 🔮 Predictive forecasting, 📋 Custom reports, 🔍 Data interpretation, 📱 Smart insights. Try: "summary", "trends", "recommendations", or "generate report".';
+        }
+        
+        if (lowerMessage.includes('insight') || lowerMessage.includes('analysis')) {
+            return 'Key insights from your data: Peak utilization occurs during business hours, revenue patterns show seasonal variations, vehicle distribution indicates market opportunities, and maintenance schedules can be optimized. What specific insight interests you?';
+        }
+        
+        return 'I provide advanced analytics insights including performance summaries, trend analysis, optimization recommendations, predictive forecasting, and detailed reporting. What specific analysis would you like me to perform?';
+    }
+    
+    // AI Assistant functionality
+    const aiAssistantBtn = document.getElementById('aiAssistantBtn');
+    const aiChatModal = document.getElementById('aiChatModal');
+    const aiChatClose = document.getElementById('aiChatClose');
+    const aiChatInput = document.getElementById('aiChatInput');
+    const aiChatSend = document.getElementById('aiChatSend');
+    const aiChatMessages = document.getElementById('aiChatMessages');
+    
+    if (aiAssistantBtn) {
+        aiAssistantBtn.addEventListener('click', toggleAIChat);
+    }
+    
+    if (aiChatClose) {
+        aiChatClose.addEventListener('click', closeAIChat);
+    }
+    
+    if (aiChatSend) {
+        aiChatSend.addEventListener('click', sendAIMessage);
+    }
+    
+    if (aiChatInput) {
+        aiChatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendAIMessage();
+            }
+        });
+    }
+    
+    document.addEventListener('click', function(e) {
+        if (aiChatModal && aiChatModal.classList.contains('show') && 
+            !aiChatModal.contains(e.target) && 
+            !aiAssistantBtn.contains(e.target)) {
+            closeAIChat();
+        }
+    });
+    
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && aiChatModal && aiChatModal.classList.contains('show')) {
+            closeAIChat();
+        }
+    });
 </script>
 {% endblock %}

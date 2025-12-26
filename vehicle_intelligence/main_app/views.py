@@ -3090,7 +3090,14 @@ def vehicle_analytics_api(request):
         # Calculate analytics from parking records
         total_visits = parking_records.count()
         total_amount = parking_records.aggregate(total=Sum('amount_paid'))['total'] or 0
-        total_time_minutes = parking_records.aggregate(total=Sum('parking_duration_minutes'))['total'] or 0
+        
+        # Calculate total parking time from entry/exit times
+        total_time_minutes = 0
+        for record in parking_records:
+            if record.entry_time and record.exit_time:
+                duration = (record.exit_time - record.entry_time).total_seconds() / 60
+                total_time_minutes += duration
+        
         total_time_hours = total_time_minutes / 60 if total_time_minutes else 0
         
         # Get unique organizations/locations
@@ -3348,6 +3355,100 @@ def export_analytics_report(request):
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     
     return response
+
+@login_required
+def vehicle_daily_movement_api(request):
+    """API endpoint for vehicle daily movement analysis"""
+    plate_number = request.GET.get('plate', '').strip().upper()
+    date_str = request.GET.get('date', '')
+    
+    if not plate_number:
+        return JsonResponse({'success': False, 'error': 'License plate number is required'}, status=400)
+    
+    try:
+        from .models import ParkingRecord
+        from django.db.models import Sum, Count, Min, Max
+        from datetime import datetime, date
+        
+        # Use today's date if no date provided
+        if date_str:
+            target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        else:
+            target_date = date.today()
+        
+        # Get all parking records for this vehicle on the target date
+        daily_records = ParkingRecord.objects.filter(
+            plate_number__iexact=plate_number,
+            entry_time__date=target_date
+        ).order_by('entry_time')
+        
+        # If no records for target date, get the most recent date with records
+        if not daily_records.exists():
+            latest_record = ParkingRecord.objects.filter(
+                plate_number__iexact=plate_number
+            ).order_by('-entry_time').first()
+            
+            if latest_record:
+                target_date = latest_record.entry_time.date()
+                daily_records = ParkingRecord.objects.filter(
+                    plate_number__iexact=plate_number,
+                    entry_time__date=target_date
+                ).order_by('entry_time')
+            else:
+                return JsonResponse({'success': False, 'error': 'No records found for this vehicle'}, status=404)
+        
+        # Get unique organizations/locations with corrected time calculation
+        organizations_visited = daily_records.values('organization').annotate(
+            visits=Count('id'),
+            total_amount=Sum('amount_paid'),
+            first_visit=Min('entry_time'),
+            last_visit=Max('entry_time')
+        ).order_by('first_visit')
+        
+        # Calculate total time manually for accurate results
+        total_time_minutes = 0
+        for record in daily_records:
+            if record.entry_time and record.exit_time:
+                duration = (record.exit_time - record.entry_time).total_seconds() / 60
+                total_time_minutes += duration
+        
+        # Format movement data with corrected time calculation
+        movement_data = []
+        for org in organizations_visited:
+            # Calculate time for this organization
+            org_records = daily_records.filter(organization=org['organization'])
+            org_total_time = 0
+            for record in org_records:
+                if record.entry_time and record.exit_time:
+                    duration = (record.exit_time - record.entry_time).total_seconds() / 60
+                    org_total_time += duration
+            
+            movement_data.append({
+                'organization': org['organization'],
+                'visits': org['visits'],
+                'total_amount': float(org['total_amount'] or 0),
+                'total_time_minutes': org_total_time,
+                'first_visit': org['first_visit'].isoformat(),
+                'last_visit': org['last_visit'].isoformat()
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'date': target_date.isoformat(),
+            'summary': {
+                'total_visits': daily_records.count(),
+                'total_amount': float(total_amount),
+                'total_time_minutes': total_time_minutes,
+                'organizations_count': len(movement_data)
+            },
+            'movements': movement_data
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Error retrieving daily movement: {str(e)}'
+        }, status=500)
 
 @login_required
 def export_profile_data(request):

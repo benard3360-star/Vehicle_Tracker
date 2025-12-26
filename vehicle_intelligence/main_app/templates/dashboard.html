@@ -683,34 +683,29 @@
     /* AI Chat Modal Styles */
     .ai-chat-modal {
         position: fixed;
-        bottom: 100px;
-        right: 24px;
+        top: 0;
+        right: 0;
         width: 380px;
-        height: 500px;
+        height: 100vh;
         background: white;
-        border-radius: 16px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        border-left: 1px solid #e5e7eb;
+        box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
         z-index: 1001;
         display: none;
         flex-direction: column;
-        border: 1px solid #e5e7eb;
         overflow: hidden;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
     }
 
     .ai-chat-modal.show {
         display: flex;
-        animation: slideUp 0.3s ease;
+        transform: translateX(0);
     }
 
-    @keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    .dashboard-container.chat-open {
+        margin-right: 380px;
+        transition: margin-right 0.3s ease;
     }
 
     .ai-chat-container {
@@ -854,6 +849,29 @@
     .ai-chat-input button:disabled {
         background: #9ca3af;
         cursor: not-allowed;
+    }
+    
+    /* Typing indicator styles */
+    .typing-dots {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+    }
+    
+    .typing-dots span {
+        width: 6px;
+        height: 6px;
+        background: #6b7280;
+        border-radius: 50%;
+        animation: typing 1.4s infinite ease-in-out;
+    }
+    
+    .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+    
+    @keyframes typing {
+        0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+        40% { transform: scale(1); opacity: 1; }
     }
 
     /* Responsive */
@@ -1324,6 +1342,7 @@
         
         function toggleAIChat() {
             aiChatModal.classList.toggle('show');
+            document.querySelector('.dashboard-container').classList.toggle('chat-open');
             if (aiChatModal.classList.contains('show')) {
                 aiChatInput.focus();
             }
@@ -1331,24 +1350,83 @@
         
         function closeAIChat() {
             aiChatModal.classList.remove('show');
+            document.querySelector('.dashboard-container').classList.remove('chat-open');
         }
         
         function sendAIMessage() {
             const message = aiChatInput.value.trim();
             if (!message) return;
             
-            // Add user message
             addMessage(message, 'user');
             aiChatInput.value = '';
+            aiChatSend.disabled = true;
             
-            // Simulate AI response
-            setTimeout(() => {
+            // Show typing indicator
+            addTypingIndicator();
+            
+            // Send to AI API
+            fetch('/api/ai-chat/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify({
+                    message: message,
+                    page_type: 'dashboard',
+                    filters: {}
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                removeTypingIndicator();
+                if (data.success) {
+                    addMessage(data.response, 'ai');
+                    if (data.source === 'openai') {
+                        addMessage('💡 Powered by OpenAI GPT', 'ai', true);
+                    }
+                } else {
+                    addMessage('Sorry, I encountered an error. Please try again.', 'ai');
+                }
+            })
+            .catch(error => {
+                removeTypingIndicator();
+                console.error('AI Chat Error:', error);
+                // Fallback to local response
                 const response = getAIResponse(message);
                 addMessage(response, 'ai');
-            }, 1000);
+            })
+            .finally(() => {
+                aiChatSend.disabled = false;
+            });
         }
         
-        function addMessage(content, type) {
+        function addTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'ai-message typing-indicator';
+            typingDiv.innerHTML = `
+                <div class="ai-avatar"><i class="fas fa-robot"></i></div>
+                <div class="ai-message-content">
+                    <div class="typing-dots">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+            `;
+            aiChatMessages.appendChild(typingDiv);
+            aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+        }
+        
+        function removeTypingIndicator() {
+            const typing = document.querySelector('.typing-indicator');
+            if (typing) typing.remove();
+        }
+        
+        function getCsrfToken() {
+            return document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                   document.querySelector('meta[name="csrf-token"]')?.content || '';
+        }
+        
+        function addMessage(content, type, isSmall = false) {
             const messageDiv = document.createElement('div');
             messageDiv.className = type === 'user' ? 'user-message' : 'ai-message';
             
@@ -1358,6 +1436,7 @@
             
             const messageContent = document.createElement('div');
             messageContent.className = type === 'user' ? 'user-message-content' : 'ai-message-content';
+            if (isSmall) messageContent.style.fontSize = '12px';
             messageContent.textContent = content;
             
             messageDiv.appendChild(avatar);
@@ -1411,6 +1490,13 @@
             if (aiChatModal.classList.contains('show') && 
                 !aiChatModal.contains(e.target) && 
                 !aiAssistantBtn.contains(e.target)) {
+                closeAIChat();
+            }
+        });
+        
+        // Close chat on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && aiChatModal.classList.contains('show')) {
                 closeAIChat();
             }
         });

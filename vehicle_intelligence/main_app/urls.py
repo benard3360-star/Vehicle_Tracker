@@ -1,7 +1,7 @@
 # urls.py - Update with profile URLs
 
 from django.urls import path
-from . import views, api_views
+from . import views, api_views, ai_views
 
 urlpatterns = [
     # Authentication
@@ -61,6 +61,12 @@ urlpatterns = [
     
     # Vehicle Analytics API
     path('api/vehicle-analytics/', views.vehicle_analytics_api, name='vehicle_analytics_api'),
+    path('api/vehicle-daily-movement/', views.vehicle_daily_movement_api, name='vehicle_daily_movement_api'),
+    
+    # AI Assistant API Endpoints
+    path('api/ai-chat/', ai_views.ai_chat_endpoint, name='ai_chat_endpoint'),
+    path('api/ai-report/', ai_views.ai_report_endpoint, name='ai_report_endpoint'),
+    path('api/ai-suggestions/', ai_views.ai_suggestions_endpoint, name='ai_suggestions_endpoint'),
     
     # REST API Endpoints
     path('api/vehicles/search/', api_views.VehicleSearchAPIView.as_view(), name='vehicle_search_api'),

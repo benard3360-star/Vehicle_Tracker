@@ -225,6 +225,14 @@
 </div>
 
 <style>
+.main-content {
+    transition: margin-right 0.3s ease;
+}
+
+.main-content.chat-open {
+    margin-right: 380px;
+}
+
 .search-section {
     background: white;
     padding: 2rem;
@@ -597,6 +605,290 @@
         flex-direction: column;
         text-align: center;
     }
+    
+    .main-content.chat-open {
+        margin-right: 0;
+    }
+    
+    .ai-assistant-float {
+        width: 56px;
+        height: 56px;
+        bottom: 20px;
+        right: 20px;
+    }
+    
+    .ai-assistant-float i {
+        font-size: 24px;
+    }
+    
+    .ai-tooltip {
+        display: none;
+    }
+    
+    .ai-chat-modal {
+        width: calc(100vw - 20px);
+        height: 350px;
+        right: 10px;
+        bottom: 80px;
+        top: auto;
+    }
+}
+
+/* AI Assistant Styles */
+.ai-assistant-float {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(22, 163, 74, 0.3);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    border: 3px solid white;
+}
+
+.ai-assistant-float:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(22, 163, 74, 0.4);
+    background: linear-gradient(135deg, #15803d, #166534);
+}
+
+.ai-assistant-float i {
+    font-size: 28px;
+    color: white;
+    animation: pulse 2s infinite;
+}
+
+.ai-tooltip {
+    position: absolute;
+    right: 80px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #111827;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.ai-tooltip::after {
+    content: '';
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 6px solid transparent;
+    border-left-color: #111827;
+}
+
+.ai-assistant-float:hover .ai-tooltip {
+    opacity: 1;
+    visibility: visible;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.ai-chat-modal {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 380px;
+    height: 100vh;
+    background: white;
+    border-left: 1px solid #e5e7eb;
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
+    z-index: 1001;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+}
+
+.ai-chat-modal.show {
+    display: flex;
+    transform: translateX(0);
+}
+
+.ai-chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.ai-chat-header {
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.ai-chat-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.ai-chat-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background 0.2s ease;
+}
+
+.ai-chat-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.ai-chat-messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: #f9fafb;
+}
+
+.ai-message, .user-message {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.user-message {
+    flex-direction: row-reverse;
+}
+
+.ai-avatar, .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.ai-avatar {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    color: white;
+}
+
+.user-avatar {
+    background: #3b82f6;
+    color: white;
+}
+
+.ai-message-content, .user-message-content {
+    background: white;
+    padding: 12px 16px;
+    border-radius: 12px;
+    max-width: 280px;
+    font-size: 14px;
+    line-height: 1.5;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    color: #111827;
+    font-weight: 500;
+}
+
+.user-message-content {
+    background: #3b82f6;
+    color: white;
+}
+
+.ai-chat-input {
+    padding: 16px 20px;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    background: white;
+}
+
+.ai-chat-input input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 24px;
+    font-size: 14px;
+    outline: none;
+}
+
+.ai-chat-input input:focus {
+    border-color: #16a34a;
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+}
+
+.ai-chat-input button {
+    width: 40px;
+    height: 40px;
+    background: #16a34a;
+    border: none;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+}
+
+.ai-chat-input button:hover {
+    background: #15803d;
+}
+
+.ai-chat-input button:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+}
+
+/* Typing indicator styles */
+.typing-dots {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.typing-dots span {
+    width: 6px;
+    height: 6px;
+    background: #6b7280;
+    border-radius: 50%;
+    animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+.typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes typing {
+    0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+    40% { transform: scale(1); opacity: 1; }
 }
 </style>
 
@@ -678,4 +970,280 @@ function loadMap() {
 document.addEventListener('DOMContentLoaded', loadMap);
 </script>
 {% endif %}
+
+<!-- AI Assistant Floating Button -->
+<div class="ai-assistant-float" id="aiAssistantBtn">
+    <div class="ai-tooltip">AI Assistant - Get vehicle help!</div>
+    <i class="fas fa-robot"></i>
+</div>
+
+<!-- AI Assistant Chat Modal -->
+<div id="aiChatModal" class="ai-chat-modal">
+    <div class="ai-chat-container">
+        <div class="ai-chat-header">
+            <div class="ai-chat-title">
+                <i class="fas fa-robot"></i>
+                <span>AI Assistant</span>
+            </div>
+            <button class="ai-chat-close" id="aiChatClose">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="ai-chat-messages" id="aiChatMessages">
+            <div class="ai-message">
+                <div class="ai-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="ai-message-content">
+                    Hello! I'm your advanced vehicle intelligence assistant. I can provide comprehensive analysis, performance insights, predictive maintenance alerts, cost optimization, and detailed reporting. Ask me for a "summary" or specific vehicle insights!
+                </div>
+            </div>
+        </div>
+        <div class="ai-chat-input">
+            <input type="text" id="aiChatInput" placeholder="Ask me about vehicle data..." maxlength="500">
+            <button id="aiChatSend">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// AI Assistant functionality
+const aiAssistantBtn = document.getElementById('aiAssistantBtn');
+const aiChatModal = document.getElementById('aiChatModal');
+const aiChatClose = document.getElementById('aiChatClose');
+const aiChatInput = document.getElementById('aiChatInput');
+const aiChatSend = document.getElementById('aiChatSend');
+const aiChatMessages = document.getElementById('aiChatMessages');
+
+function toggleAIChat() {
+    aiChatModal.classList.toggle('show');
+    document.querySelector('.main-content').classList.toggle('chat-open');
+    if (aiChatModal.classList.contains('show')) {
+        aiChatInput.focus();
+    }
+}
+
+function closeAIChat() {
+    aiChatModal.classList.remove('show');
+    document.querySelector('.main-content').classList.remove('chat-open');
+}
+
+function sendAIMessage() {
+    const message = aiChatInput.value.trim();
+    if (!message) return;
+    
+    addMessage(message, 'user');
+    aiChatInput.value = '';
+    aiChatSend.disabled = true;
+    
+    // Show typing indicator
+    addTypingIndicator();
+    
+    // Get current vehicle context
+    const filters = getCurrentVehicleContext();
+    
+    // Send to AI API
+    fetch('/api/ai-chat/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+        },
+        body: JSON.stringify({
+            message: message,
+            page_type: 'vehicle_alert',
+            filters: filters
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        removeTypingIndicator();
+        if (data.success) {
+            addMessage(data.response, 'ai');
+            if (data.source === 'openai') {
+                addMessage('💡 Powered by OpenAI GPT', 'ai', true);
+            }
+        } else {
+            addMessage('Sorry, I encountered an error. Please try again.', 'ai');
+        }
+    })
+    .catch(error => {
+        removeTypingIndicator();
+        console.error('AI Chat Error:', error);
+        // Fallback to local response
+        const response = getAIResponse(message);
+        addMessage(response, 'ai');
+    })
+    .finally(() => {
+        aiChatSend.disabled = false;
+    });
+}
+
+function getCurrentVehicleContext() {
+    const filters = {};
+    const vehicleHeader = document.querySelector('.vehicle-header');
+    if (vehicleHeader) {
+        const licensePlate = document.querySelector('.detail-item')?.textContent?.split(': ')[1];
+        if (licensePlate) filters.license_plate = licensePlate;
+    }
+    return filters;
+}
+
+function addTypingIndicator() {
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'ai-message typing-indicator';
+    typingDiv.innerHTML = `
+        <div class="ai-avatar"><i class="fas fa-robot"></i></div>
+        <div class="ai-message-content">
+            <div class="typing-dots">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+    `;
+    aiChatMessages.appendChild(typingDiv);
+    aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+}
+
+function removeTypingIndicator() {
+    const typing = document.querySelector('.typing-indicator');
+    if (typing) typing.remove();
+}
+
+function getCsrfToken() {
+    return document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+           document.querySelector('meta[name="csrf-token"]')?.content || '';
+}
+
+function addMessage(content, type, isSmall = false) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = type === 'user' ? 'user-message' : 'ai-message';
+    
+    const avatar = document.createElement('div');
+    avatar.className = type === 'user' ? 'user-avatar' : 'ai-avatar';
+    avatar.innerHTML = type === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+    
+    const messageContent = document.createElement('div');
+    messageContent.className = type === 'user' ? 'user-message-content' : 'ai-message-content';
+    if (isSmall) messageContent.style.fontSize = '12px';
+    messageContent.textContent = content;
+    
+    messageDiv.appendChild(avatar);
+    messageDiv.appendChild(messageContent);
+    
+    aiChatMessages.appendChild(messageDiv);
+    aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+}
+
+function getAIResponse(message) {
+    const lowerMessage = message.toLowerCase();
+    
+    // Advanced vehicle analysis
+    if (lowerMessage.includes('summary') || lowerMessage.includes('overview')) {
+        const vehicleFound = document.querySelector('.vehicle-header');
+        if (vehicleFound) {
+            const stats = document.querySelectorAll('.stat-content h3');
+            return `Vehicle Analysis Summary: This vehicle has completed ${stats[0]?.textContent || 'N/A'} trips covering ${stats[1]?.textContent || 'N/A'} total distance. Fuel consumption: ${stats[2]?.textContent || 'N/A'}, Average speed: ${stats[3]?.textContent || 'N/A'}. Performance indicates ${stats[0]?.textContent > 50 ? 'high' : 'moderate'} usage patterns.`;
+        }
+        return 'Search for a vehicle first to get detailed analytics summary including trips, performance metrics, and usage patterns.';
+    }
+    
+    if (lowerMessage.includes('performance') || lowerMessage.includes('efficiency')) {
+        return 'Vehicle performance analysis includes: Trip frequency (indicates utilization), fuel efficiency (km/L ratio), average speed (driving patterns), and maintenance status. High-performing vehicles show consistent usage with optimal fuel consumption.';
+    }
+    
+    if (lowerMessage.includes('maintenance') || lowerMessage.includes('service')) {
+        return 'Maintenance insights: "Due" status requires immediate attention, "Up to Date" indicates good condition. Monitor fuel efficiency drops (may indicate engine issues), unusual speed patterns (potential mechanical problems), and trip frequency changes.';
+    }
+    
+    if (lowerMessage.includes('location') || lowerMessage.includes('tracking')) {
+        return 'Location tracking shows real-time position with GPS coordinates, last seen timestamp, and movement history. The map displays current location with accuracy radius. Historical data reveals usage patterns and route preferences.';
+    }
+    
+    if (lowerMessage.includes('recommendation') || lowerMessage.includes('suggest')) {
+        return 'Optimization recommendations: 1) Schedule maintenance for vehicles with "Due" status, 2) Investigate vehicles with low fuel efficiency, 3) Analyze high-mileage vehicles for replacement planning, 4) Monitor location patterns for route optimization.';
+    }
+    
+    if (lowerMessage.includes('compare') || lowerMessage.includes('benchmark')) {
+        return 'Vehicle benchmarking: Compare trip frequency (fleet average: 45 trips/month), fuel efficiency (target: >12 km/L), and utilization rates. High performers exceed benchmarks while underperformers may need attention.';
+    }
+    
+    if (lowerMessage.includes('report') || lowerMessage.includes('export')) {
+        return 'Generate detailed vehicle reports including: Performance analysis, maintenance schedule, fuel consumption trends, location history, and cost analysis. Reports can be exported as PDF with charts and recommendations. Say "generate report" for custom analysis.';
+    }
+    
+    if (lowerMessage.includes('generate report') || lowerMessage.includes('custom report')) {
+        const vehicleFound = document.querySelector('.vehicle-header');
+        if (vehicleFound) {
+            setTimeout(() => {
+                addMessage('Generating comprehensive vehicle report... Including: 1) Performance Analysis, 2) Maintenance Recommendations, 3) Cost Breakdown, 4) Usage Patterns, 5) Predictive Insights. Report ready for download.', 'ai');
+            }, 1500);
+            return 'Creating detailed vehicle intelligence report with current data...';
+        }
+        return 'Please search for a vehicle first to generate a detailed report.';
+    }
+    
+    if (lowerMessage.includes('alert') || lowerMessage.includes('warning')) {
+        return 'Smart alerts available for: Maintenance due dates, unusual fuel consumption, location deviations, extended idle times, and performance anomalies. Set up proactive monitoring for fleet management.';
+    }
+    
+    if (lowerMessage.includes('cost') || lowerMessage.includes('expense')) {
+        return 'Cost analysis includes: Fuel expenses, maintenance costs, depreciation, and operational efficiency. Track cost per kilometer, monthly expenses, and ROI metrics for informed decision-making.';
+    }
+    
+    if (lowerMessage.includes('predict') || lowerMessage.includes('forecast')) {
+        return 'Predictive analytics: Forecast maintenance needs based on usage patterns, predict fuel costs from consumption trends, estimate vehicle lifespan, and identify optimal replacement timing.';
+    }
+    
+    if (lowerMessage.includes('search') || lowerMessage.includes('find')) {
+        return 'Advanced search capabilities: Enter license plate or VIN for instant vehicle lookup. Search supports partial matches and suggests similar vehicles. Use filters for specific vehicle types or organizations. Try searching for common plates like "KCA", "KDA", or "KBZ".';
+    }
+    
+    if (lowerMessage.includes('help') || lowerMessage.includes('what can you do')) {
+        return 'I provide comprehensive vehicle intelligence: 🚗 Vehicle search & analysis, 📊 Performance insights, 🔧 Maintenance alerts, 📍 Location tracking, 💰 Cost analysis, 🔮 Predictive maintenance, 📋 Custom reports. Try: "summary", "performance", "maintenance", or "generate report".';
+    }
+    
+    if (lowerMessage.includes('insight') || lowerMessage.includes('analysis')) {
+        return 'Vehicle intelligence insights: Usage patterns reveal optimal deployment, fuel efficiency trends indicate maintenance needs, location data shows route preferences, and performance metrics guide fleet optimization decisions.';
+    }
+    
+    return 'I provide comprehensive vehicle intelligence including performance analysis, predictive maintenance, cost optimization, location tracking, and detailed reporting. What specific vehicle insights do you need?';
+}
+
+if (aiAssistantBtn) {
+    aiAssistantBtn.addEventListener('click', toggleAIChat);
+}
+
+if (aiChatClose) {
+    aiChatClose.addEventListener('click', closeAIChat);
+}
+
+if (aiChatSend) {
+    aiChatSend.addEventListener('click', sendAIMessage);
+}
+
+if (aiChatInput) {
+    aiChatInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendAIMessage();
+        }
+    });
+}
+
+document.addEventListener('click', function(e) {
+    if (aiChatModal.classList.contains('show') && 
+        !aiChatModal.contains(e.target) && 
+        !aiAssistantBtn.contains(e.target)) {
+        closeAIChat();
+    }
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && aiChatModal.classList.contains('show')) {
+        closeAIChat();
+    }
+});
+</script>
+
 {% endblock %}

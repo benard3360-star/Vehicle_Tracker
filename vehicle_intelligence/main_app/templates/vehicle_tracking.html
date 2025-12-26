@@ -39,6 +39,11 @@
         50% { opacity: 0.5; }
     }
 
+    @keyframes blink {
+        0%, 50% { opacity: 1; }
+        51%, 100% { opacity: 0.3; }
+    }
+
     .vehicle-info h2 {
         font-size: 20px;
         font-weight: 600;
@@ -85,6 +90,7 @@
         border-radius: 12px;
         padding: 20px;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        color: #111827;
     }
 
     .info-card h3 {
@@ -108,7 +114,7 @@
 
     .info-label {
         font-size: 14px;
-        color: #6b7280;
+        color: #111827;
     }
 
     .info-value {
@@ -133,9 +139,22 @@
         <div class="vehicle-status">
             <div class="status-indicator"></div>
             <div class="vehicle-info">
-                <h2>Vehicle KCA 123A - Active</h2>
+                <h2>Vehicle Tracking - Select a vehicle</h2>
                 <p>Last updated: 2 minutes ago</p>
             </div>
+        </div>
+        
+        <div style="display: flex; gap: 12px; align-items: center; margin-top: 16px;">
+            <input type="text" id="plateSearch" placeholder="Enter License Plate (e.g., KDQ339K)" 
+                   style="padding: 10px 16px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; font-weight: 500; text-transform: uppercase; min-width: 200px;">
+            <button onclick="searchAndUpdateMap()" 
+                    style="padding: 10px 20px; background: #16a34a; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                <i class="fas fa-search"></i> Track Vehicle
+            </button>
+            <button onclick="showDefaultMap()" 
+                    style="padding: 10px 16px; background: #6b7280; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                <i class="fas fa-refresh"></i> Reset
+            </button>
         </div>
     </div>
 
@@ -149,31 +168,54 @@
                 <h3>Current Location</h3>
                 <div class="info-item">
                     <span class="info-label">Address</span>
-                    <span class="info-value">Green House Mall</span>
+                    <span class="info-value" id="currentAddress">Search for a vehicle above</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Coordinates</span>
-                    <span class="info-value">-1.2921, 36.8219</span>
+                    <span class="info-value" id="currentCoords">-</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Status</span>
-                    <span class="info-value">Parked</span>
+                    <span class="info-value" id="currentStatus">-</span>
                 </div>
             </div>
 
             <div class="info-card">
-                <h3>Today's Summary</h3>
+                <h3>Vehicle Summary</h3>
                 <div class="info-item">
-                    <span class="info-label">Distance</span>
-                    <span class="info-value">38.6 km</span>
+                    <span class="info-label">Total Visits</span>
+                    <span class="info-value" id="totalVisits">-</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">Duration</span>
-                    <span class="info-value">1h 23m</span>
+                    <span class="info-label">Total Amount</span>
+                    <span class="info-value" id="totalAmount">-</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">Trips</span>
-                    <span class="info-value">4</span>
+                    <span class="info-label">Destinations</span>
+                    <span class="info-value" id="uniqueDestinations">-</span>
+                </div>
+            </div>
+            
+            <div class="info-card">
+                <h3>Destinations Breakdown</h3>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 12px; color: #111827;">
+                        <thead>
+                            <tr style="background: #f3f4f6;">
+                                <th style="padding: 8px 4px; text-align: left; border-bottom: 1px solid #e5e7eb; color: #111827;">Destination</th>
+                                <th style="padding: 8px 4px; text-align: center; border-bottom: 1px solid #e5e7eb; color: #111827;">Visits</th>
+                                <th style="padding: 8px 4px; text-align: center; border-bottom: 1px solid #e5e7eb; color: #111827;">Total Time</th>
+                                <th style="padding: 8px 4px; text-align: center; border-bottom: 1px solid #e5e7eb; color: #111827;">Avg Time</th>
+                                <th style="padding: 8px 4px; text-align: center; border-bottom: 1px solid #e5e7eb; color: #111827;">Amount</th>
+                                <th style="padding: 8px 4px; text-align: center; border-bottom: 1px solid #e5e7eb; color: #111827;">Last Visit</th>
+                            </tr>
+                        </thead>
+                        <tbody id="destinationsTableBody">
+                            <tr>
+                                <td colspan="6" style="padding: 20px; text-align: center; color: #6b7280;">Search for a vehicle to see destinations</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -184,54 +226,240 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-// Organization locations with actual vehicle counts from dataset
-const organizations = [
-    { name: "JKIA", lat: -1.3192, lng: 36.9278, vehicles: {{ organizations|length > 0 and organizations.0.name == "JKIA"|yesno:"organizations.0.vehicle_count,0" }} },
-    { name: "KNH", lat: -1.3005, lng: 36.8078, vehicles: {{ organizations|length > 0 and organizations.1.name == "KNH"|yesno:"organizations.1.vehicle_count,0" }} },
-    { name: "Green House Mall", lat: -1.2921, lng: 36.8219, vehicles: {{ organizations|length > 0 and organizations.2.name == "Green House Mall"|yesno:"organizations.2.vehicle_count,0" }}, current: true },
-    { name: "Greenspan Mall", lat: -1.2634, lng: 36.8047, vehicles: {{ organizations|length > 0 and organizations.3.name == "Greenspan Mall"|yesno:"organizations.3.vehicle_count,0" }} },
-    { name: "United Mall", lat: -1.2841, lng: 36.8155, vehicles: {{ organizations|length > 0 and organizations.4.name == "United Mall"|yesno:"organizations.4.vehicle_count,0" }} }
-];
+const organizations = {
+    "JKIA": { lat: -1.3192, lng: 36.9278, vehicles: 15 },
+    "KNH": { lat: -1.3005, lng: 36.8078, vehicles: 8 },
+    "Green House Mall": { lat: -1.2921, lng: 36.8219, vehicles: 12 },
+    "Greenspan Mall": { lat: -1.2634, lng: 36.8047, vehicles: 6 },
+    "United Mall": { lat: -1.2841, lng: 36.8155, vehicles: 9 }
+};
 
-const map = L.map('map').setView([-1.2921, 36.8219], 12);
+let map = L.map('map').setView([-1.2921, 36.8219], 12);
+let allMarkers = [];
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors'
 }).addTo(map);
 
-// Add organization markers
-organizations.forEach(org => {
-    const icon = L.divIcon({
-        html: `<div style="background: #dc2626; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
-        iconSize: [20, 20],
-        iconAnchor: [10, 10]
+function updateMapLocation(plateNumber) {
+    allMarkers.forEach(marker => map.removeLayer(marker));
+    allMarkers = [];
+    
+    Promise.all([
+        fetch(`/api/vehicle-analytics/?plate=${encodeURIComponent(plateNumber)}`),
+        fetch(`/api/vehicle-daily-movement/?plate=${encodeURIComponent(plateNumber)}`)
+    ])
+    .then(responses => Promise.all(responses.map(r => r.json())))
+    .then(([analyticsData, movementData]) => {
+        console.log('Analytics data:', analyticsData);
+        console.log('Movement data:', movementData);
+        
+        if (analyticsData.success && analyticsData.analytics && analyticsData.analytics.destinations.length > 0) {
+            const primaryDestination = analyticsData.analytics.destinations[0];
+            const primaryOrgName = primaryDestination.destination;
+            
+            // Update vehicle header
+            document.querySelector('.vehicle-info h2').textContent = `Vehicle ${plateNumber} - Active`;
+            
+            // Update Current Location section
+            document.getElementById('currentAddress').textContent = primaryOrgName;
+            document.getElementById('currentStatus').textContent = 'Parked';
+            
+            // Update Vehicle Summary section
+            document.getElementById('totalVisits').textContent = analyticsData.analytics.total_visits;
+            document.getElementById('totalAmount').textContent = `KSh ${analyticsData.analytics.total_amount.toFixed(2)}`;
+            document.getElementById('uniqueDestinations').textContent = analyticsData.analytics.unique_destinations;
+            
+            if (organizations[primaryOrgName]) {
+                const primaryLocation = organizations[primaryOrgName];
+                document.getElementById('currentCoords').textContent = `${primaryLocation.lat.toFixed(4)}, ${primaryLocation.lng.toFixed(4)}`;
+                
+                map.setView([primaryLocation.lat, primaryLocation.lng], 13);
+                
+                const primaryIcon = L.divIcon({
+                    html: `<div style="background: #dc2626; width: 24px; height: 24px; border-radius: 50%; border: 4px solid white; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.6); animation: blink 1s infinite;"></div>`,
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16]
+                });
+                
+                const currentMarker = L.marker([primaryLocation.lat, primaryLocation.lng], {icon: primaryIcon})
+                    .addTo(map)
+                    .bindPopup(`<b>${plateNumber}</b><br><strong>Primary Location: ${primaryOrgName}</strong><br>Total Visits: ${primaryDestination.visits}<br>Amount Paid: KSh ${primaryDestination.total_amount.toLocaleString()}`);
+                
+                allMarkers.push(currentMarker);
+                
+                // Process daily movement data
+                if (movementData.success && movementData.movements) {
+                    movementData.movements.forEach((movement, index) => {
+                        if (organizations[movement.organization] && movement.organization !== primaryOrgName) {
+                            const org = organizations[movement.organization];
+                            const visitIcon = L.divIcon({
+                                html: `<div style="background: #f59e0b; width: 18px; height: 18px; border-radius: 50%; border: 3px solid white; box-shadow: 0 3px 8px rgba(245, 158, 11, 0.5); font-size: 10px; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">${index + 1}</div>`,
+                                iconSize: [24, 24],
+                                iconAnchor: [12, 12]
+                            });
+                            
+                            const visitTime = new Date(movement.first_visit);
+                            const marker = L.marker([org.lat, org.lng], {icon: visitIcon})
+                                .addTo(map)
+                                .bindPopup(`<b>${movement.organization}</b><br><strong>Visit #${index + 1}</strong><br>Visits: ${movement.visits}<br>Amount: KSh ${movement.total_amount.toLocaleString()}<br>First Visit: ${visitTime.toLocaleTimeString()}`);
+                            
+                            allMarkers.push(marker);
+                        }
+                    });
+                    
+                    updateDailySummary(movementData);
+                }
+                
+                // Update destinations table
+                updateDestinationsTable(analyticsData.analytics.destinations);
+                
+                Object.keys(organizations).forEach(name => {
+                    const isVisitedToday = movementData.success && movementData.movements && movementData.movements.some(m => m.organization === name);
+                    if (name !== primaryOrgName && !isVisitedToday) {
+                        const org = organizations[name];
+                        const otherIcon = L.divIcon({
+                            html: `<div style="background: #16a34a; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+                            iconSize: [18, 18],
+                            iconAnchor: [9, 9]
+                        });
+                        
+                        const marker = L.marker([org.lat, org.lng], {icon: otherIcon})
+                            .addTo(map)
+                            .bindPopup(`<b>${name}</b><br>Available parking location`);
+                        
+                        allMarkers.push(marker);
+                    }
+                });
+                
+                currentMarker.openPopup();
+            } else {
+                console.log('Organization not found in map:', primaryOrgName);
+                showDefaultMap();
+            }
+        } else {
+            console.log('No analytics data found');
+            showDefaultMap();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showDefaultMap();
+    });
+}
+
+function showDefaultMap() {
+    allMarkers.forEach(marker => map.removeLayer(marker));
+    allMarkers = [];
+    
+    map.setView([-1.2921, 36.8219], 12);
+    
+    Object.keys(organizations).forEach(name => {
+        const org = organizations[name];
+        const icon = L.divIcon({
+            html: `<div style="background: #16a34a; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+        });
+        
+        const marker = L.marker([org.lat, org.lng], {icon})
+            .addTo(map)
+            .bindPopup(`<b>${name}</b><br>Parking available`);
+        
+        allMarkers.push(marker);
     });
     
-    L.marker([org.lat, org.lng], {icon})
-        .addTo(map)
-        .bindPopup(`<b>${org.name}</b><br>Vehicles: ${org.vehicles}${org.current ? '<br><span style="color: #dc2626;">Current Location</span>' : ''}`);
-});
-
-// Add distance lines between organizations
-const currentOrg = organizations.find(org => org.current);
-organizations.forEach(org => {
-    if (!org.current) {
-        const distance = calculateDistance(currentOrg.lat, currentOrg.lng, org.lat, org.lng);
-        L.polyline([[currentOrg.lat, currentOrg.lng], [org.lat, org.lng]], {
-            color: '#6b7280',
-            weight: 2,
-            opacity: 0.6,
-            dashArray: '5, 10'
-        }).addTo(map).bindTooltip(`${distance.toFixed(1)} km`, {permanent: false, direction: 'center'});
-    }
-});
-
-function calculateDistance(lat1, lng1, lat2, lng2) {
-    const R = 6371;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLng = (lng2 - lng1) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng/2) * Math.sin(dLng/2);
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    document.querySelector('.vehicle-info h2').textContent = 'Vehicle Tracking - Select a vehicle';
+    document.getElementById('currentAddress').textContent = 'Search for a vehicle above';
+    document.getElementById('currentCoords').textContent = '-';
+    document.getElementById('currentStatus').textContent = '-';
+    document.getElementById('totalVisits').textContent = '-';
+    document.getElementById('totalAmount').textContent = '-';
+    document.getElementById('uniqueDestinations').textContent = '-';
+    
+    // Reset destinations table
+    const tableBody = document.getElementById('destinationsTableBody');
+    tableBody.innerHTML = '<tr><td colspan="6" style="padding: 20px; text-align: center; color: #6b7280;">Search for a vehicle to see destinations</td></tr>';
 }
+
+function searchAndUpdateMap() {
+    const plateInput = document.getElementById('plateSearch');
+    const plateNumber = plateInput.value.trim().toUpperCase();
+    if (plateNumber) {
+        updateMapLocation(plateNumber);
+    } else {
+        showDefaultMap();
+    }
+}
+
+function updateDestinationsTable(destinations) {
+    const tableBody = document.getElementById('destinationsTableBody');
+    tableBody.innerHTML = '';
+    
+    destinations.forEach(dest => {
+        const row = document.createElement('tr');
+        row.style.borderBottom = '1px solid #f3f4f6';
+        
+        const totalHours = Math.floor(dest.total_time_hours);
+        const totalMinutes = Math.floor(dest.total_time_minutes % 60);
+        const avgHours = Math.floor(dest.avg_time_hours);
+        const avgMinutes = Math.floor(dest.avg_time_minutes % 60);
+        const lastVisit = new Date(dest.last_visit);
+        
+        row.innerHTML = `
+            <td style="padding: 8px 4px; font-weight: 600; color: #16a34a;">${dest.destination}</td>
+            <td style="padding: 8px 4px; text-align: center; color: #111827;">${dest.visits}</td>
+            <td style="padding: 8px 4px; text-align: center; color: #111827;">${totalHours}h ${totalMinutes}m</td>
+            <td style="padding: 8px 4px; text-align: center; color: #111827;">${avgHours}h ${avgMinutes}m</td>
+            <td style="padding: 8px 4px; text-align: center; font-weight: 600; color: #059669;">KSh ${dest.total_amount.toLocaleString()}</td>
+            <td style="padding: 8px 4px; text-align: center; font-size: 11px; color: #111827;">${lastVisit.toLocaleDateString()}</td>
+        `;
+        
+        tableBody.appendChild(row);
+    });
+}
+
+function updateDailySummary(movementData) {
+    if (movementData.success && movementData.summary) {
+        const existingDetails = document.querySelector('.daily-movement-details');
+        if (existingDetails) existingDetails.remove();
+        
+        const movementDetails = document.createElement('div');
+        movementDetails.className = 'daily-movement-details';
+        movementDetails.innerHTML = `
+            <div class="info-card" style="margin-top: 16px; border-left: 4px solid #f59e0b;">
+                <h3>Movement Details (${movementData.date})</h3>
+                ${movementData.movements.map((movement, index) => {
+                    const visitTime = new Date(movement.first_visit);
+                    return `
+                        <div class="info-item">
+                            <span class="info-label" style="color: #111827;">${index + 1}. ${movement.organization}</span>
+                            <span class="info-value" style="color: #111827;">${visitTime.toLocaleTimeString()} - KSh ${movement.total_amount}</span>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+        
+        document.querySelector('.tracking-sidebar').appendChild(movementDetails);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const plateInput = document.getElementById('plateSearch');
+    if (plateInput) {
+        plateInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchAndUpdateMap();
+            }
+        });
+        
+        plateInput.addEventListener('input', function(e) {
+            e.target.value = e.target.value.toUpperCase();
+        });
+    }
+    
+    showDefaultMap();
+});
 </script>
 {% endblock %}
