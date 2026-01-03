@@ -620,19 +620,16 @@
     </div>
 
     <!-- Charts -->
-    <div class="charts-grid">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 40px;">
         <div class="chart-card">
             <div class="chart-header">
                 <h3 class="chart-title">Parking Duration Analysis</h3>
             </div>
             <div class="chart-body">
                 {% if parking_duration_chart %}
-                    <div id="parkingDurationChart"></div>
+                    <div id="parkingDurationChart" style="height: 300px;"></div>
                 {% else %}
-                    <div class="no-data">
-                        <i class="fas fa-clock" style="font-size: 48px; margin-bottom: 16px;"></i>
-                        <p>No parking duration data available</p>
-                    </div>
+                    <div id="parkingDurationChart" style="height: 300px;"></div>
                 {% endif %}
             </div>
         </div>
@@ -643,12 +640,9 @@
             </div>
             <div class="chart-body">
                 {% if hourly_entries_chart %}
-                    <div id="hourlyEntriesChart"></div>
+                    <div id="hourlyEntriesChart" style="height: 300px;"></div>
                 {% else %}
-                    <div class="no-data">
-                        <i class="fas fa-clock" style="font-size: 48px; margin-bottom: 16px;"></i>
-                        <p>No hourly entry data available</p>
-                    </div>
+                    <div id="hourlyEntriesChart" style="height: 300px;"></div>
                 {% endif %}
             </div>
         </div>
@@ -659,12 +653,9 @@
             </div>
             <div class="chart-body">
                 {% if vehicles_per_site_chart %}
-                    <div id="vehiclesPerSiteChart"></div>
+                    <div id="vehiclesPerSiteChart" style="height: 300px;"></div>
                 {% else %}
-                    <div class="no-data">
-                        <i class="fas fa-building" style="font-size: 48px; margin-bottom: 16px;"></i>
-                        <p>No vehicle distribution data available</p>
-                    </div>
+                    <div id="vehiclesPerSiteChart" style="height: 300px;"></div>
                 {% endif %}
             </div>
         </div>
@@ -675,12 +666,9 @@
             </div>
             <div class="chart-body">
                 {% if revenue_per_site_chart %}
-                    <div id="revenuePerSiteChart"></div>
+                    <div id="revenuePerSiteChart" style="height: 300px;"></div>
                 {% else %}
-                    <div class="no-data">
-                        <i class="fas fa-money-bill-wave" style="font-size: 48px; margin-bottom: 16px;"></i>
-                        <p>No revenue data available</p>
-                    </div>
+                    <div id="revenuePerSiteChart" style="height: 300px;"></div>
                 {% endif %}
             </div>
         </div>
@@ -691,12 +679,9 @@
             </div>
             <div class="chart-body">
                 {% if visit_patterns_chart %}
-                    <div id="visitPatternsChart"></div>
+                    <div id="visitPatternsChart" style="height: 300px;"></div>
                 {% else %}
-                    <div class="no-data">
-                        <i class="fas fa-chart-bar" style="font-size: 48px; margin-bottom: 16px;"></i>
-                        <p>No visit pattern data available</p>
-                    </div>
+                    <div id="visitPatternsChart" style="height: 300px;"></div>
                 {% endif %}
             </div>
         </div>
@@ -707,15 +692,92 @@
             </div>
             <div class="chart-body">
                 {% if avg_stay_by_type_chart %}
-                    <div id="avgStayByTypeChart"></div>
+                    <div id="avgStayByTypeChart" style="height: 300px;"></div>
                 {% else %}
-                    <div class="no-data">
-                        <i class="fas fa-clock" style="font-size: 48px; margin-bottom: 16px;"></i>
-                        <p>No stay duration data available</p>
-                    </div>
+                    <div id="avgStayByTypeChart" style="height: 300px;"></div>
                 {% endif %}
             </div>
         </div>
+        
+        {% if is_super_admin %}
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3 class="chart-title">Capacity Utilization</h3>
+            </div>
+            <div class="chart-body">
+                {% if capacity_utilization_chart %}
+                    <div id="capacityUtilizationChart" style="height: 300px;"></div>
+                {% else %}
+                    <div id="capacityUtilizationChart" style="height: 300px;"></div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3 class="chart-title">Customer Loyalty Analysis</h3>
+            </div>
+            <div class="chart-body">
+                {% if customer_loyalty_chart %}
+                    <div id="customerLoyaltyChart" style="height: 300px;"></div>
+                {% else %}
+                    <div id="customerLoyaltyChart" style="height: 300px;"></div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3 class="chart-title">Revenue Trends</h3>
+            </div>
+            <div class="chart-body">
+                {% if revenue_trends_chart %}
+                    <div id="revenueTrendsChart" style="height: 300px;"></div>
+                {% else %}
+                    <div id="revenueTrendsChart" style="height: 300px;"></div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3 class="chart-title">Payment Behavior Analysis</h3>
+            </div>
+            <div class="chart-body">
+                {% if payment_behavior_chart %}
+                    <div id="paymentBehaviorChart" style="height: 300px;"></div>
+                {% else %}
+                    <div id="paymentBehaviorChart" style="height: 300px;"></div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3 class="chart-title">Vehicle Brand Performance</h3>
+            </div>
+            <div class="chart-body">
+                {% if vehicle_brand_performance_chart %}
+                    <div id="vehicleBrandPerformanceChart" style="height: 300px;"></div>
+                {% else %}
+                    <div id="vehicleBrandPerformanceChart" style="height: 300px;"></div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3 class="chart-title">Seasonal Patterns</h3>
+            </div>
+            <div class="chart-body">
+                {% if seasonal_patterns_chart %}
+                    <div id="seasonalPatternsChart" style="height: 300px;"></div>
+                {% else %}
+                    <div id="seasonalPatternsChart" style="height: 300px;"></div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     <!-- Driver Performance Table -->
@@ -834,36 +896,179 @@
 {% block extra_js %}
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
-    // Render charts
-    {% if parking_duration_chart %}
-    var parkingDurationData = {{ parking_duration_chart|safe }};
-    Plotly.newPlot('parkingDurationChart', parkingDurationData.data, parkingDurationData.layout, {responsive: true});
-    {% endif %}
-    
-    {% if hourly_entries_chart %}
-    var hourlyEntriesData = {{ hourly_entries_chart|safe }};
-    Plotly.newPlot('hourlyEntriesChart', hourlyEntriesData.data, hourlyEntriesData.layout, {responsive: true});
-    {% endif %}
-    
-    {% if vehicles_per_site_chart %}
-    var vehiclesPerSiteData = {{ vehicles_per_site_chart|safe }};
-    Plotly.newPlot('vehiclesPerSiteChart', vehiclesPerSiteData.data, vehiclesPerSiteData.layout, {responsive: true});
-    {% endif %}
-    
-    {% if revenue_per_site_chart %}
-    var revenuePerSiteData = {{ revenue_per_site_chart|safe }};
-    Plotly.newPlot('revenuePerSiteChart', revenuePerSiteData.data, revenuePerSiteData.layout, {responsive: true});
-    {% endif %}
-    
-    {% if visit_patterns_chart %}
-    var visitPatternsData = {{ visit_patterns_chart|safe }};
-    Plotly.newPlot('visitPatternsChart', visitPatternsData.data, visitPatternsData.layout, {responsive: true});
-    {% endif %}
-    
-    {% if avg_stay_by_type_chart %}
-    var avgStayByTypeData = {{ avg_stay_by_type_chart|safe }};
-    Plotly.newPlot('avgStayByTypeChart', avgStayByTypeData.data, avgStayByTypeData.layout, {responsive: true});
-    {% endif %}
+    // Force render all charts with real data
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Starting chart rendering...');
+        
+        // Parking Duration Chart
+        {% if parking_duration_chart %}
+        try {
+            var parkingData = {{ parking_duration_chart|safe }};
+            console.log('Parking data:', parkingData);
+            if (parkingData && parkingData.data && parkingData.data.length > 0) {
+                Plotly.newPlot('parkingDurationChart', parkingData.data, parkingData.layout, {responsive: true});
+            } else {
+                console.warn('Parking duration chart has no data');
+            }
+        } catch(e) {
+            console.error('Parking chart error:', e, e.stack);
+        }
+        {% endif %}
+        
+        // Hourly Entries Chart
+        {% if hourly_entries_chart %}
+        try {
+            var hourlyData = {{ hourly_entries_chart|safe }};
+            console.log('Hourly data:', hourlyData);
+            if (hourlyData && hourlyData.data && hourlyData.data.length > 0) {
+                Plotly.newPlot('hourlyEntriesChart', hourlyData.data, hourlyData.layout, {responsive: true});
+            } else {
+                console.warn('Hourly entries chart has no data');
+            }
+        } catch(e) {
+            console.error('Hourly chart error:', e, e.stack);
+        }
+        {% endif %}
+        
+        // Vehicles Per Site Chart
+        {% if vehicles_per_site_chart %}
+        try {
+            var vehiclesData = {{ vehicles_per_site_chart|safe }};
+            console.log('Vehicles data:', vehiclesData);
+            if (vehiclesData && vehiclesData.data && vehiclesData.data.length > 0) {
+                Plotly.newPlot('vehiclesPerSiteChart', vehiclesData.data, vehiclesData.layout, {responsive: true});
+            } else {
+                console.warn('Vehicles per site chart has no data');
+            }
+        } catch(e) {
+            console.error('Vehicles chart error:', e, e.stack);
+        }
+        {% endif %}
+        
+        // Revenue Chart
+        {% if revenue_per_site_chart %}
+        try {
+            var revenueData = {{ revenue_per_site_chart|safe }};
+            console.log('Revenue data:', revenueData);
+            if (revenueData && revenueData.data && revenueData.data.length > 0) {
+                Plotly.newPlot('revenuePerSiteChart', revenueData.data, revenueData.layout, {responsive: true});
+            } else {
+                console.warn('Revenue chart has no data');
+            }
+        } catch(e) {
+            console.error('Revenue chart error:', e, e.stack);
+        }
+        {% endif %}
+        
+        // Visit Patterns Chart
+        {% if visit_patterns_chart %}
+        try {
+            var visitPatternsData = {{ visit_patterns_chart|safe }};
+            console.log('Visit patterns data:', visitPatternsData);
+            if (visitPatternsData && visitPatternsData.data && visitPatternsData.data.length > 0) {
+                Plotly.newPlot('visitPatternsChart', visitPatternsData.data, visitPatternsData.layout, {responsive: true});
+            } else {
+                console.warn('Visit patterns chart has no data');
+            }
+        } catch(e) {
+            console.error('Visit patterns chart error:', e, e.stack);
+        }
+        {% endif %}
+        
+        // Average Stay Chart
+        {% if avg_stay_by_type_chart %}
+        try {
+            var avgStayData = {{ avg_stay_by_type_chart|safe }};
+            console.log('Avg stay data:', avgStayData);
+            if (avgStayData && avgStayData.data && avgStayData.data.length > 0) {
+                Plotly.newPlot('avgStayByTypeChart', avgStayData.data, avgStayData.layout, {responsive: true});
+            } else {
+                console.warn('Avg stay chart has no data');
+            }
+        } catch(e) {
+            console.error('Avg stay chart error:', e, e.stack);
+        }
+        {% endif %}
+        
+        // Additional Super Admin Charts
+        {% if is_super_admin %}
+        
+        // Capacity Utilization Chart
+        {% if capacity_utilization_chart %}
+        try {
+            var capacityData = {{ capacity_utilization_chart|safe }};
+            if (capacityData && capacityData.data && capacityData.data.length > 0) {
+                Plotly.newPlot('capacityUtilizationChart', capacityData.data, capacityData.layout, {responsive: true});
+            }
+        } catch(e) {
+            console.error('Capacity chart error:', e);
+        }
+        {% endif %}
+        
+        // Customer Loyalty Chart
+        {% if customer_loyalty_chart %}
+        try {
+            var loyaltyData = {{ customer_loyalty_chart|safe }};
+            if (loyaltyData && loyaltyData.data && loyaltyData.data.length > 0) {
+                Plotly.newPlot('customerLoyaltyChart', loyaltyData.data, loyaltyData.layout, {responsive: true});
+            }
+        } catch(e) {
+            console.error('Loyalty chart error:', e);
+        }
+        {% endif %}
+        
+        // Revenue Trends Chart
+        {% if revenue_trends_chart %}
+        try {
+            var revenueTrendsData = {{ revenue_trends_chart|safe }};
+            if (revenueTrendsData && revenueTrendsData.data && revenueTrendsData.data.length > 0) {
+                Plotly.newPlot('revenueTrendsChart', revenueTrendsData.data, revenueTrendsData.layout, {responsive: true});
+            }
+        } catch(e) {
+            console.error('Revenue trends chart error:', e);
+        }
+        {% endif %}
+        
+        // Payment Behavior Chart
+        {% if payment_behavior_chart %}
+        try {
+            var paymentData = {{ payment_behavior_chart|safe }};
+            if (paymentData && paymentData.data && paymentData.data.length > 0) {
+                Plotly.newPlot('paymentBehaviorChart', paymentData.data, paymentData.layout, {responsive: true});
+            }
+        } catch(e) {
+            console.error('Payment behavior chart error:', e);
+        }
+        {% endif %}
+        
+        // Vehicle Brand Performance Chart
+        {% if vehicle_brand_performance_chart %}
+        try {
+            var brandPerformanceData = {{ vehicle_brand_performance_chart|safe }};
+            if (brandPerformanceData && brandPerformanceData.data && brandPerformanceData.data.length > 0) {
+                Plotly.newPlot('vehicleBrandPerformanceChart', brandPerformanceData.data, brandPerformanceData.layout, {responsive: true});
+            }
+        } catch(e) {
+            console.error('Brand performance chart error:', e);
+        }
+        {% endif %}
+        
+        // Seasonal Patterns Chart
+        {% if seasonal_patterns_chart %}
+        try {
+            var seasonalData = {{ seasonal_patterns_chart|safe }};
+            if (seasonalData && seasonalData.data && seasonalData.data.length > 0) {
+                Plotly.newPlot('seasonalPatternsChart', seasonalData.data, seasonalData.layout, {responsive: true});
+            }
+        } catch(e) {
+            console.error('Seasonal patterns chart error:', e);
+        }
+        {% endif %}
+        
+        {% endif %}
+        
+        console.log('Chart rendering complete');
+    });
     
     // Reset all filters function
     function resetFilters() {

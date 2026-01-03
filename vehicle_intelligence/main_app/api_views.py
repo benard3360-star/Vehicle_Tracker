@@ -1,73 +1,49 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
-from django.db.models import Q, Sum, Avg, Count
-from decimal import Decimal
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from django.utils import timezone
+import json
 from .models import ParkingRecord
-from .serializers import ParkingRecordSerializer, VehicleSearchResponseSerializer
 
-class VehicleSearchAPIView(APIView):
-    permission_classes = [IsAuthenticated]
-    
-    def get(self, request):
-        plate_number = request.query_params.get('plate_number', '').strip()
+@csrf_exempt
+@require_POST
+def add_parking_entry(request):
+    """API endpoint to add new parking entry in real-time"""
+    try:
+        data = json.loads(request.body)
         
-        # Validate plate number parameter
-        if not plate_number:
-            return Response(
-                {'error': 'plate_number parameter is required'}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # For regular users, search across all organizations
-        # For organization admins, restrict to their organization
-        if request.user.role == 'organization_admin' and request.user.organization:
-            # Organization admin - filter by their organization
-            vehicle_records = ParkingRecord.objects.filter(
-                organization=request.user.organization.name,
-                plate_number__icontains=plate_number
-            ).order_by('-entry_time')
-        else:
-            # Regular users and super admins - search all organizations
-            vehicle_records = ParkingRecord.objects.filter(
-                plate_number__icontains=plate_number
-            ).order_by('-entry_time')
-        
-        # Check if records exist
-        if not vehicle_records.exists():
-            return Response(
-                {'error': 'No vehicle records found for the specified plate number'}, 
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        # Compute analytics
-        analytics_data = vehicle_records.aggregate(
-            total_visits=Count('id'),
-            total_amount_paid=Sum('amount_paid'),
-            average_payment=Avg('amount_paid')
+        record = ParkingRecord.objects.create(
+            plate_number=data['plate_number'],
+            entry_time=timezone.now(),
+            vehicle_type=data.get('vehicle_type', 'Unknown'),
+            vehicle_brand=data.get('vehicle_brand', 'Unknown'),
+            organization=data['organization'],
+            parking_status='active'
         )
         
-        # Visit count per location
-        location_counts = vehicle_records.values('organization').annotate(
-            count=Count('id')
+        return JsonResponse({'success': True, 'id': record.id})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@csrf_exempt
+@require_POST
+def update_parking_exit(request):
+    """API endpoint to update parking exit in real-time"""
+    try:
+        data = json.loads(request.body)
+        
+        record = ParkingRecord.objects.get(
+            plate_number=data['plate_number'],
+            parking_status='active'
         )
-        visit_count_per_location = {
-            item['organization']: item['count'] 
-            for item in location_counts
-        }
         
-        # Handle None values
-        analytics_data['total_amount_paid'] = analytics_data['total_amount_paid'] or Decimal('0.00')
-        analytics_data['average_payment'] = analytics_data['average_payment'] or Decimal('0.00')
-        analytics_data['visit_count_per_location'] = visit_count_per_location
+        record.exit_time = timezone.now()
+        record.amount_paid = data.get('amount_paid', 0)
+        record.payment_method = data.get('payment_method', 'Cash')
+        record.parking_duration_minutes = (record.exit_time - record.entry_time).total_seconds() / 60
+        record.parking_status = 'completed'
+        record.save()
         
-        # Serialize data
-        vehicle_serializer = ParkingRecordSerializer(vehicle_records, many=True)
-        
-        response_data = {
-            'vehicle_records': vehicle_serializer.data,
-            'analytics': analytics_data
-        }
-        
-        return Response(response_data, status=status.HTTP_200_OK)
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})

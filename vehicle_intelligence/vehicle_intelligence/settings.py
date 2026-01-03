@@ -64,18 +64,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'vehicle_intelligence.wsgi.application'
 
-# Database
+# Database - PostgreSQL
 DATABASES = {
     'default': {
-        'ENGINE': env('DB_ENGINE', default='django.db.backends.sqlite3'),
-        'NAME': env('DB_NAME', default=BASE_DIR / 'db.sqlite3'),
-        'USER': env('DB_USER', default=''),
-        'PASSWORD': env('DB_PASSWORD', default=''),
-        'HOST': env('DB_HOST', default=''),
-        'PORT': env('DB_PORT', default=''),
-        'OPTIONS': {
-            'charset': 'utf8mb4',
-        } if env('DB_ENGINE', default='').startswith('django.db.backends.mysql') else {},
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'vehicle',
+        'USER': 'postgres',
+        'PASSWORD': '2000',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
@@ -103,7 +100,9 @@ USE_TZ = True
 
 # Static files
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+# Only add static directory if it exists (avoid warning if not created yet)
+static_dir = BASE_DIR / 'static'
+STATICFILES_DIRS = [static_dir] if static_dir.exists() else []
 
 # Custom User Model
 AUTH_USER_MODEL = 'main_app.CustomUser'

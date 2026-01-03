@@ -204,6 +204,10 @@
     <div class="admin-header">
         <h1>Organizations Management</h1>
         <p>Create and manage organizations</p>
+        <button class="btn btn-primary" onclick="assignAdminModal('', '')" style="margin-left: auto;">
+            <i class="fas fa-user-plus"></i>
+            Create Organization Admin
+        </button>
     </div>
     
     <div class="create-org-section">
@@ -393,7 +397,15 @@
         <p id="modalOrgName"></p>
         <form id="assignAdminForm">
             {% csrf_token %}
-            <input type="hidden" id="modalOrgId" name="org_id">
+            <div class="form-group">
+                <label>Select Organization *</label>
+                <select class="form-control" name="org_id" id="orgSelect" required>
+                    <option value="">Select Organization</option>
+                    {% for org in organizations %}
+                    <option value="{{ org.id }}">{{ org.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
             <div class="form-group">
                 <label>Username *</label>
                 <input type="text" class="form-control" name="username" required>
@@ -427,8 +439,8 @@ const modal = document.getElementById('assignAdminModal');
 const span = document.getElementsByClassName("close")[0];
 
 function assignAdminModal(orgId, orgName) {
-    document.getElementById('modalOrgId').value = orgId;
-    document.getElementById('modalOrgName').textContent = 'Organization: ' + orgName;
+    document.getElementById('orgSelect').value = orgId;
+    document.getElementById('modalOrgName').textContent = 'Assign Admin to Organization';
     modal.style.display = "block";
 }
 

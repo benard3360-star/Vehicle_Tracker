@@ -1,19 +1,28 @@
-# signals.py
-from django.db.models.signals import post_save
+from django.db.models.signals import post_migrate
 from django.dispatch import receiver
-from django.contrib.auth import get_user_model
-from .models import UserProfile
+from django.core.management import call_command
+from django.db import connection
+import logging
 
-User = get_user_model()
+logger = logging.getLogger(__name__)
 
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    """Create user profile when a new user is created"""
-    if created:
-        UserProfile.objects.create(user=instance)
+@receiver(post_migrate)
+def create_vehicle_users_on_startup(sender, **kwargs):
+    """Automatically create users from vehicle data on server startup"""
+    if sender.name == 'main_app':
+        try:
+            logger.info("Auto-creating vehicle users on startup...")
+            call_command('create_vehicle_users')
+            logger.info("Vehicle users creation completed")
+        except Exception as e:
+            logger.error(f"Error creating vehicle users: {e}")
 
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    """Save user profile when user is saved"""
-    if hasattr(instance, 'profile'):
-        instance.profile.save()
+def sync_vehicle_users():
+    """Function to sync vehicle users - can be called anytime"""
+    try:
+        from django.core.management import call_command
+        call_command('create_vehicle_users')
+        return True
+    except Exception as e:
+        logger.error(f"Error syncing vehicle users: {e}")
+        return False

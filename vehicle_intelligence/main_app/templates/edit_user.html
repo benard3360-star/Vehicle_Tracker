@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit User - Vehicle Intelligence System{% endblock %}
+
+{% block page_title_text %}Edit User{% endblock %}
+{% block page_subtitle %}Update user information and settings{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 800px; margin: 0 auto;">
+    <div class="card">
+        <div class="card-header">
+            <h3>Edit User: {{ edit_user.username }}</h3>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="first_name">First Name</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" 
+                                   value="{{ edit_user.first_name }}" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="last_name">Last Name</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" 
+                                   value="{{ edit_user.last_name }}" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" 
+                           value="{{ edit_user.email }}" readonly>
+                    <small class="form-text text-muted">Email cannot be changed</small>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="role">Role</label>
+                            <select class="form-control" id="role" name="role" required>
+                                <option value="employee" {% if edit_user.role == 'employee' %}selected{% endif %}>Employee</option>
+                                <option value="manager" {% if edit_user.role == 'manager' %}selected{% endif %}>Manager</option>
+                                <option value="hr" {% if edit_user.role == 'hr' %}selected{% endif %}>HR Personnel</option>
+                                <option value="sales_agent" {% if edit_user.role == 'sales_agent' %}selected{% endif %}>Sales Agent</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="phone">Phone</label>
+                            <input type="text" class="form-control" id="phone" name="phone" 
+                                   value="{{ edit_user.phone }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="department">Department</label>
+                            <input type="text" class="form-control" id="department" name="department" 
+                                   value="{{ edit_user.department }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="job_title">Job Title</label>
+                            <input type="text" class="form-control" id="job_title" name="job_title" 
+                                   value="{{ edit_user.job_title }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="is_active" name="is_active" 
+                               {% if edit_user.is_active %}checked{% endif %}>
+                        <label class="form-check-label" for="is_active">
+                            Active User
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Update User
+                    </button>
+                    <a href="{% url 'org_admin_dashboard' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

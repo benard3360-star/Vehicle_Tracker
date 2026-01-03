@@ -41,7 +41,7 @@ class AIAssistant:
             context.update(self._get_analytics_context(user, filters))
         elif page_type == 'vehicle_alert':
             context.update(self._get_vehicle_context(user, filters))
-        elif page_type == 'dashboard':
+        elif page_type == 'dashboard' or page_type == 'org_admin_dashboard':
             context.update(self._get_dashboard_context(user))
             
         return context
@@ -125,10 +125,36 @@ class AIAssistant:
             }
         elif user.role == 'organization_admin':
             org_users = CustomUser.objects.filter(organization=user.organization).count()
+            active_users = CustomUser.objects.filter(organization=user.organization, is_active=True).count()
+            
+            # Get vehicle data for the organization if available
+            vehicle_data = {}
+            try:
+                from django.db import connection
+                with connection.cursor() as cursor:
+                    cursor.execute("""
+                        SELECT COUNT(DISTINCT "Plate Number") as vehicle_count,
+                               SUM("Amount Paid") as total_revenue,
+                               AVG("Duration (Minutes)") as avg_duration
+                        FROM combined_dataset 
+                        WHERE "Organization" = %s
+                    """, [user.organization.name])
+                    result = cursor.fetchone()
+                    if result:
+                        vehicle_data = {
+                            'vehicle_count': result[0] or 0,
+                            'total_revenue': float(result[1] or 0),
+                            'avg_duration': float(result[2] or 0)
+                        }
+            except Exception as e:
+                logger.error(f"Error fetching vehicle data: {e}")
+            
             return {
                 'organization_users': org_users,
+                'active_users': active_users,
                 'organization_name': user.organization.name,
-                'user_type': 'org_admin'
+                'user_type': 'org_admin',
+                **vehicle_data
             }
         else:
             return {'user_type': 'employee'}
@@ -203,6 +229,37 @@ class AIAssistant:
                 
                 Help with vehicle search and explain system capabilities.
                 """
+        elif context['page_type'] == 'org_admin_dashboard':
+            base_prompt += f"""
+            - Page: Organization Admin Dashboard
+            - Organization: {context.get('organization_name', 'N/A')}
+            - Total Users: {context.get('organization_users', 0)}
+            - Active Users: {context.get('active_users', 0)}
+            - Fleet Vehicles: {context.get('vehicle_count', 0)}
+            - Fleet Revenue: KSh {context.get('total_revenue', 0):,.2f}
+            - Average Parking Duration: {context.get('avg_duration', 0):.1f} minutes
+            - User Role: Organization Administrator
+            
+            Provide organization management insights, user analytics, fleet performance analysis, and administrative recommendations.
+            """
+        elif context['page_type'] == 'dashboard':
+            if context.get('user_type') == 'super_admin':
+                base_prompt += f"""
+                - Page: Super Admin Dashboard
+                - Total Organizations: {context.get('total_organizations', 0)}
+                - Total Users: {context.get('total_users', 0)}
+                - User Role: Super Administrator
+                
+                Provide system-wide insights, organizational comparisons, and strategic recommendations.
+                """
+            else:
+                base_prompt += f"""
+                - Page: User Dashboard
+                - User Role: {context['user_role']}
+                - Organization: {context['organization']}
+                
+                Provide user-specific insights and system navigation help.
+                """
         
         base_prompt += """
         
@@ -226,6 +283,8 @@ class AIAssistant:
             return self._analytics_fallback_response(message_lower, context)
         elif context['page_type'] == 'vehicle_alert':
             return self._vehicle_fallback_response(message_lower, context)
+        elif context['page_type'] == 'org_admin_dashboard':
+            return self._org_admin_fallback_response(message_lower, context)
         else:
             return self._dashboard_fallback_response(message_lower, context)
 
@@ -287,6 +346,68 @@ class AIAssistant:
             
         return {
             'response': f"I can analyze vehicle {context.get('license_plate', 'data')} including performance metrics, usage patterns, cost analysis, and maintenance recommendations. What specific aspect interests you?",
+            'source': 'fallback',
+            'context_used': True
+        }
+
+    def _org_admin_fallback_response(self, message, context):
+        """Organization admin dashboard specific fallback responses"""
+        org_name = context.get('organization_name', 'your organization')
+        user_count = context.get('organization_users', 0)
+        active_users = context.get('active_users', 0)
+        vehicle_count = context.get('vehicle_count', 0)
+        total_revenue = context.get('total_revenue', 0)
+        
+        if 'summary' in message or 'overview' in message:
+            return {
+                'response': f"Organization Overview: {org_name} has {user_count} total users with {active_users} active users. Your fleet includes {vehicle_count} vehicles generating KSh {total_revenue:,.2f} in revenue. User engagement rate is {(active_users/user_count*100) if user_count > 0 else 0:.1f}%.",
+                'source': 'fallback',
+                'context_used': True
+            }
+        elif 'users' in message or 'employees' in message:
+            inactive_users = user_count - active_users
+            return {
+                'response': f"User Management: You have {user_count} users in {org_name}. {active_users} are active and {inactive_users} are inactive. {'Focus on re-engaging inactive users' if inactive_users > 0 else 'Excellent user engagement!'} Consider implementing user activity monitoring and profile completion initiatives.",
+                'source': 'fallback',
+                'context_used': True
+            }
+        elif 'fleet' in message or 'vehicle' in message:
+            if vehicle_count > 0:
+                avg_revenue_per_vehicle = total_revenue / vehicle_count if vehicle_count > 0 else 0
+                return {
+                    'response': f"Fleet Analysis: {org_name} operates {vehicle_count} vehicles generating an average of KSh {avg_revenue_per_vehicle:,.2f} per vehicle. {'Strong performance' if avg_revenue_per_vehicle > 5000 else 'Consider optimization strategies'} for revenue generation. Monitor parking patterns and duration for efficiency improvements.",
+                    'source': 'fallback',
+                    'context_used': True
+                }
+            else:
+                return {
+                    'response': f"No fleet data available for {org_name}. This could mean vehicles haven't been registered in the parking system yet, or data collection is still in progress.",
+                    'source': 'fallback',
+                    'context_used': True
+                }
+        elif 'recommendation' in message or 'optimize' in message:
+            recommendations = []
+            if user_count > 0 and (active_users/user_count) < 0.8:
+                recommendations.append("Increase user engagement through training and communication")
+            if vehicle_count > 0 and total_revenue < 50000:
+                recommendations.append("Optimize fleet utilization and parking strategies")
+            if user_count > 20:
+                recommendations.append("Implement department-based user management")
+            
+            return {
+                'response': f"Optimization Recommendations for {org_name}: {'; '.join(recommendations) if recommendations else 'Current performance is good. Continue monitoring user activity and fleet efficiency.'}",
+                'source': 'fallback',
+                'context_used': True
+            }
+        elif 'report' in message:
+            return {
+                'response': f"I can generate comprehensive reports for {org_name} including: User activity analysis ({user_count} users), fleet performance summary ({vehicle_count} vehicles), revenue analysis (KSh {total_revenue:,.2f}), and organizational efficiency metrics. Would you like me to create a detailed management report?",
+                'source': 'fallback',
+                'context_used': True
+            }
+        
+        return {
+            'response': f"I can help you manage {org_name} with insights on your {user_count} users, {vehicle_count} fleet vehicles, revenue analysis, user engagement strategies, and organizational optimization. What specific aspect would you like to explore?",
             'source': 'fallback',
             'context_used': True
         }

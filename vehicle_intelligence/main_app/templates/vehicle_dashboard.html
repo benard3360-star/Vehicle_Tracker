@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Dashboard - {{ plate_number }}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-green: #16a34a;
+            --primary-green-light: #22c55e;
+            --primary-green-dark: #15803d;
+            --bg-light: #f8fafc;
+            --bg-white: #ffffff;
+            --text-dark: #1f2937;
+            --text-gray: #6b7280;
+            --border-light: #e5e7eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            transition: margin-right 0.3s ease;
+        }
+
+        body.chat-open {
+            margin-right: 380px;
+        }
+
+        .header {
+            background: var(--bg-white);
+            border-bottom: 1px solid var(--border-light);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-green);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .header-title h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .header-title p {
+            font-size: 0.875rem;
+            color: var(--text-gray);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-info .plate {
+            font-weight: 600;
+            color: var(--primary-green);
+        }
+
+        .user-info .org {
+            font-size: 0.875rem;
+            color: var(--text-gray);
+        }
+
+        .logout-btn {
+            background: var(--error);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: background 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        /* Filters Section */
+        .filters-section {
+            background: var(--bg-white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-light);
+        }
+
+        .filters-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .filters-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-gray);
+            margin-bottom: 0.5rem;
+        }
+
+        .filter-select, .filter-input {
+            padding: 0.75rem;
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            font-size: 0.875rem;
+            background: white;
+        }
+
+        .filter-select:focus, .filter-input:focus {
+            outline: none;
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary-green);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-green-dark);
+        }
+
+        .btn-secondary {
+            background: var(--text-gray);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        /* Map Section */
+        .map-section {
+            background: var(--bg-white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-light);
+        }
+
+        .map-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .map-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .location-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+        }
+
+        #map {
+            height: 300px;
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--bg-white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-light);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.1rem;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+            background: var(--bg-light);
+            border-radius: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-green);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-gray);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-inactive {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+
+        .chart-container {
+            height: 300px;
+            margin-top: 1rem;
+        }
+
+        /* AI Assistant Styles */
+        .ai-assistant-float {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--primary-green), var(--primary-green-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(22, 163, 74, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            border: 3px solid white;
+        }
+
+        .ai-assistant-float:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(22, 163, 74, 0.4);
+        }
+
+        .ai-assistant-float i {
+            font-size: 28px;
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        .ai-tooltip {
+            position: absolute;
+            right: 80px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #111827;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .ai-tooltip::after {
+            content: '';
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 6px solid transparent;
+            border-left-color: #111827;
+        }
+
+        .ai-assistant-float:hover .ai-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .ai-chat-modal {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 380px;
+            height: 100vh;
+            background: white;
+            border-left: 1px solid var(--border-light);
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
+            z-index: 1001;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .ai-chat-modal.show {
+            display: flex;
+            transform: translateX(0);
+        }
+
+        .ai-chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .ai-chat-header {
+            padding: 16px 20px;
+            background: linear-gradient(135deg, var(--primary-green), var(--primary-green-dark));
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .ai-chat-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .ai-chat-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: background 0.2s ease;
+        }
+
+        .ai-chat-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .ai-chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            background: #f9fafb;
+        }
+
+        .ai-message, .user-message {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .user-message {
+            flex-direction: row-reverse;
+        }
+
+        .ai-avatar, .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .ai-avatar {
+            background: linear-gradient(135deg, var(--primary-green), var(--primary-green-dark));
+            color: white;
+        }
+
+        .user-avatar {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .ai-message-content, .user-message-content {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            max-width: 280px;
+            font-size: 14px;
+            line-height: 1.5;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            color: #111827;
+            font-weight: 500;
+        }
+
+        .user-message-content {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .ai-chat-input {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border-light);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            background: white;
+        }
+
+        .ai-chat-input input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--border-light);
+            border-radius: 24px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .ai-chat-input input:focus {
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+        }
+
+        .ai-chat-input button {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-green);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease;
+        }
+
+        .ai-chat-input button:hover {
+            background: var(--primary-green-dark);
+        }
+
+        .ai-chat-input button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .typing-dots span {
+            width: 6px;
+            height: 6px;
+            background: #6b7280;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-gray);
+        }
+
+        .no-data i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 1024px) {
+            body.chat-open {
+                margin-right: 0;
+            }
+
+            .ai-chat-modal {
+                width: calc(100vw - 40px);
+                height: 400px;
+                right: 20px;
+                bottom: 90px;
+                top: auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .ai-assistant-float {
+                width: 56px;
+                height: 56px;
+                bottom: 20px;
+                right: 20px;
+            }
+
+            .ai-assistant-float i {
+                font-size: 24px;
+            }
+
+            .ai-tooltip {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">
+                🚗
+            </div>
+            <div class="header-title">
+                <h1>Vehicle Dashboard</h1>
+                <p>Your vehicle analytics and history</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="user-info">
+                <div class="plate">{{ plate_number }}</div>
+                <div class="org">{{ organization.name|default:"Unknown Organization" }}</div>
+            </div>
+            <a href="{% url 'logout' %}" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Filters Section -->
+        <div class="filters-section">
+            <div class="filters-header">
+                <h3 class="filters-title">Analytics Filters</h3>
+                <div class="location-status">
+                    <div class="status-dot"></div>
+                    <span>Live Data</span>
+                </div>
+            </div>
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label class="filter-label">Month</label>
+                    <select class="filter-select" id="monthFilter">
+                        <option value="">All Months</option>
+                        <option value="1">January</option>
+                        <option value="2">February</option>
+                        <option value="3">March</option>
+                        <option value="4">April</option>
+                        <option value="5">May</option>
+                        <option value="6">June</option>
+                        <option value="7">July</option>
+                        <option value="8">August</option>
+                        <option value="9">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Day of Week</label>
+                    <select class="filter-select" id="dayFilter">
+                        <option value="">All Days</option>
+                        <option value="1">Monday</option>
+                        <option value="2">Tuesday</option>
+                        <option value="3">Wednesday</option>
+                        <option value="4">Thursday</option>
+                        <option value="5">Friday</option>
+                        <option value="6">Saturday</option>
+                        <option value="0">Sunday</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Payment Method</label>
+                    <select class="filter-select" id="paymentFilter">
+                        <option value="">All Methods</option>
+                        <option value="Cash">Cash</option>
+                        <option value="M-PESA">M-PESA</option>
+                        <option value="Card">Card Payment</option>
+                        <option value="Mobile Money">Mobile Money</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Date Range</label>
+                    <input type="date" class="filter-input" id="startDate">
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">To Date</label>
+                    <input type="date" class="filter-input" id="endDate">
+                </div>
+            </div>
+            <div class="filter-buttons">
+                <button class="btn btn-primary" onclick="applyFilters()">Apply Filters</button>
+                <button class="btn btn-secondary" onclick="resetFilters()">Reset</button>
+            </div>
+        </div>
+
+        <!-- Map Section -->
+        <div class="map-section">
+            <div class="map-header">
+                <h3 class="map-title">Current Location</h3>
+                <div class="location-status">
+                    <div class="status-dot"></div>
+                    <span>Last seen: {{ vehicle_data.last_activity|date:"M d, Y H:i" }}</span>
+                </div>
+            </div>
+            <div id="map"></div>
+        </div>
+
+        {% if vehicle_data %}
+        <!-- Summary Cards -->
+        <div class="dashboard-grid">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon" style="background: var(--primary-green);">
+                        <i class="fas fa-car"></i>
+                    </div>
+                    <div class="card-title">Vehicle Overview</div>
+                </div>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalVisits">{{ vehicle_data.total_visits }}</div>
+                        <div class="stat-label">Total Visits</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalRevenue">KSh {{ vehicle_data.total_revenue|floatformat:0 }}</div>
+                        <div class="stat-label">Total Spent</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="avgDuration">{{ vehicle_data.avg_duration }} min</div>
+                        <div class="stat-label">Avg Duration</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">
+                            <span class="status-badge {% if vehicle_data.status == 'Active' %}status-active{% else %}status-inactive{% endif %}">
+                                {{ vehicle_data.status }}
+                            </span>
+                        </div>
+                        <div class="stat-label">Status</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon" style="background: var(--success);">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div class="card-title">Monthly Analytics</div>
+                </div>
+                <div class="chart-container" id="monthlyChart"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon" style="background: var(--warning);">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="card-title">Usage Patterns</div>
+                </div>
+                <div class="chart-container" id="usageChart"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon" style="background: #8b5cf6;">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <div class="card-title">Payment Analysis</div>
+                </div>
+                <div class="chart-container" id="paymentChart"></div>
+            </div>
+        </div>
+
+        <!-- Detailed Analytics -->
+        <div class="dashboard-grid">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon" style="background: var(--primary-green);">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <div class="card-title">Recent Trips</div>
+                </div>
+                <div class="trip-list" id="tripsList">
+                    {% for trip in vehicle_data.recent_trips %}
+                    <div class="trip-item">
+                        <div class="trip-info">
+                            <div class="trip-date">{{ trip.date }} at {{ trip.time }}</div>
+                            <div class="trip-location">{{ trip.location }}</div>
+                        </div>
+                        <div class="trip-duration">
+                            <div class="trip-amount">KSh {{ trip.amount|floatformat:0 }}</div>
+                            <div>{{ trip.duration_hours }}h {{ trip.duration_mins }}m</div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="no-data">
+                        <i class="fas fa-car"></i>
+                        <p>No recent trips found</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon" style="background: var(--success);">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="card-title">Favorite Locations</div>
+                </div>
+                <div id="locationsList">
+                    {% for location in vehicle_data.favorite_locations %}
+                    <div class="location-item">
+                        <div>
+                            <div class="location-name">{{ location.name }}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-gray);">{{ location.visits }} visits</div>
+                        </div>
+                        <div class="location-stats">
+                            <div style="font-weight: 600; color: var(--primary-green);">KSh {{ location.total_spent|floatformat:0 }}</div>
+                            <div>{{ location.avg_duration }} min avg</div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="no-data">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <p>No location data available</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <div class="card">
+            <div class="no-data">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>No Data Available</h3>
+                <p>No parking or movement data found for vehicle {{ plate_number }}.</p>
+                <p style="margin-top: 1rem; font-size: 0.875rem; color: var(--text-gray);">
+                    This could mean the vehicle hasn't been recorded in our system yet, or there might be a data synchronization issue.
+                </p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- AI Assistant Floating Button -->
+    <div class="ai-assistant-float" id="aiAssistantBtn">
+        <div class="ai-tooltip">AI Assistant - Get vehicle insights!</div>
+        <i class="fas fa-robot"></i>
+    </div>
+
+    <!-- AI Assistant Chat Modal -->
+    <div id="aiChatModal" class="ai-chat-modal">
+        <div class="ai-chat-container">
+            <div class="ai-chat-header">
+                <div class="ai-chat-title">
+                    <i class="fas fa-robot"></i>
+                    <span>Vehicle AI Assistant</span>
+                </div>
+                <button class="ai-chat-close" id="aiChatClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="ai-chat-messages" id="aiChatMessages">
+                <div class="ai-message">
+                    <div class="ai-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="ai-message-content">
+                        Hello! I'm your vehicle AI assistant for {{ plate_number }}. I can help you analyze your parking patterns, costs, favorite locations, and provide insights about your vehicle usage. What would you like to know?
+                    </div>
+                </div>
+            </div>
+            <div class="ai-chat-input">
+                <input type="text" id="aiChatInput" placeholder="Ask about your vehicle analytics..." maxlength="500">
+                <button id="aiChatSend">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize map
+            initializeMap();
+            
+            // Initialize charts
+            initializeCharts();
+            
+            // Initialize AI assistant
+            initializeAIAssistant();
+            
+            // Set default date range (last 30 days)
+            const today = new Date();
+            const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+            document.getElementById('startDate').value = thirtyDaysAgo.toISOString().split('T')[0];
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+        });
+        
+        function initializeMap() {
+            // Initialize Leaflet map
+            const map = L.map('map').setView([-1.2921, 36.8219], 13); // Nairobi coordinates
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            
+            // Add vehicle marker
+            const vehicleIcon = L.divIcon({
+                html: '<i class="fas fa-car" style="color: #16a34a; font-size: 20px;"></i>',
+                iconSize: [30, 30],
+                className: 'vehicle-marker'
+            });
+            
+            L.marker([-1.2921, 36.8219], {icon: vehicleIcon})
+                .addTo(map)
+                .bindPopup('<b>{{ plate_number }}</b><br>Last known location<br>{{ vehicle_data.last_activity|date:"M d, Y H:i" }}');
+            
+            // Add organization markers if available
+            {% if vehicle_data.favorite_locations %}
+            {% for location in vehicle_data.favorite_locations %}
+            const orgIcon{{ forloop.counter }} = L.divIcon({
+                html: '<i class="fas fa-building" style="color: #3b82f6; font-size: 16px;"></i>',
+                iconSize: [25, 25],
+                className: 'org-marker'
+            });
+            
+            L.marker([{{ location.lat|default:"-1.29" }}, {{ location.lng|default:"36.82" }}], {icon: orgIcon{{ forloop.counter }}})
+                .addTo(map)
+                .bindPopup('<b>{{ location.name }}</b><br>{{ location.visits }} visits<br>KSh {{ location.total_spent|floatformat:0 }} total');
+            {% endfor %}
+            {% endif %}
+        }
+        
+        function initializeCharts() {
+            // Monthly Analytics Chart
+            const monthlyData = {
+                x: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                y: [{{ vehicle_data.monthly_trips|default:"0" }}, 8, 12, 15, 10, 18],
+                type: 'scatter',
+                mode: 'lines+markers',
+                marker: {color: '#16a34a', size: 8},
+                line: {color: '#16a34a', width: 3}
+            };
+            
+            Plotly.newPlot('monthlyChart', [monthlyData], {
+                title: 'Monthly Trips Trend',
+                xaxis: {title: 'Month'},
+                yaxis: {title: 'Number of Trips'},
+                margin: {t: 40, r: 20, b: 40, l: 40},
+                height: 250
+            }, {responsive: true});
+            
+            // Usage Patterns Chart (Hourly)
+            const usageData = {
+                x: ['6AM', '8AM', '10AM', '12PM', '2PM', '4PM', '6PM', '8PM'],
+                y: [2, 8, 15, 12, 18, 22, 16, 8],
+                type: 'bar',
+                marker: {color: '#f59e0b'}
+            };
+            
+            Plotly.newPlot('usageChart', [usageData], {
+                title: 'Usage by Hour',
+                xaxis: {title: 'Time of Day'},
+                yaxis: {title: 'Frequency'},
+                margin: {t: 40, r: 20, b: 40, l: 40},
+                height: 250
+            }, {responsive: true});
+            
+            // Payment Methods Chart
+            const paymentData = {
+                values: [60, 30, 10],
+                labels: ['M-PESA', 'Cash', 'Card'],
+                type: 'pie',
+                marker: {
+                    colors: ['#16a34a', '#f59e0b', '#3b82f6']
+                }
+            };
+            
+            Plotly.newPlot('paymentChart', [paymentData], {
+                title: 'Payment Methods',
+                margin: {t: 40, r: 20, b: 20, l: 20},
+                height: 250
+            }, {responsive: true});
+        }
+        
+        function applyFilters() {
+            const filters = {
+                month: document.getElementById('monthFilter').value,
+                day: document.getElementById('dayFilter').value,
+                payment: document.getElementById('paymentFilter').value,
+                startDate: document.getElementById('startDate').value,
+                endDate: document.getElementById('endDate').value
+            };
+            
+            // Show loading state
+            showLoading();
+            
+            // Fetch filtered data
+            fetch(`/api/vehicle-daily-movement/?plate={{ plate_number }}&${new URLSearchParams(filters)}`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                if (data.success) {
+                    updateDashboard(data);
+                } else {
+                    showToast('No data found for selected filters', 'warning');
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                console.error('Filter error:', error);
+                showToast('Error applying filters', 'error');
+            });
+        }
+        
+        function resetFilters() {
+            document.getElementById('monthFilter').value = '';
+            document.getElementById('dayFilter').value = '';
+            document.getElementById('paymentFilter').value = '';
+            
+            const today = new Date();
+            const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+            document.getElementById('startDate').value = thirtyDaysAgo.toISOString().split('T')[0];
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+            
+            applyFilters();
+        }
+        
+        function updateDashboard(data) {
+            // Update summary cards
+            if (data.summary) {
+                document.getElementById('totalVisits').textContent = data.summary.total_visits;
+                document.getElementById('totalRevenue').textContent = `KSh ${data.summary.total_amount.toFixed(0)}`;
+                document.getElementById('avgDuration').textContent = `${Math.round(data.summary.total_time_minutes / data.summary.total_visits)} min`;
+            }
+            
+            // Update trips list
+            if (data.movements) {
+                updateTripsList(data.movements);
+            }
+            
+            // Update locations list
+            if (data.movements) {
+                updateLocationsList(data.movements);
+            }
+        }
+        
+        function updateTripsList(movements) {
+            const tripsList = document.getElementById('tripsList');
+            tripsList.innerHTML = '';
+            
+            movements.forEach(movement => {
+                const tripItem = document.createElement('div');
+                tripItem.className = 'trip-item';
+                tripItem.innerHTML = `
+                    <div class="trip-info">
+                        <div class="trip-date">${new Date(movement.first_visit).toLocaleDateString()} at ${new Date(movement.first_visit).toLocaleTimeString()}</div>
+                        <div class="trip-location">${movement.organization}</div>
+                    </div>
+                    <div class="trip-duration">
+                        <div class="trip-amount">KSh ${movement.total_amount.toFixed(0)}</div>
+                        <div>${Math.floor(movement.total_time_minutes / 60)}h ${movement.total_time_minutes % 60}m</div>
+                    </div>
+                `;
+                tripsList.appendChild(tripItem);
+            });
+        }
+        
+        function updateLocationsList(movements) {
+            const locationsList = document.getElementById('locationsList');
+            locationsList.innerHTML = '';
+            
+            movements.forEach(movement => {
+                const locationItem = document.createElement('div');
+                locationItem.className = 'location-item';
+                locationItem.innerHTML = `
+                    <div>
+                        <div class="location-name">${movement.organization}</div>
+                        <div style="font-size: 0.8rem; color: var(--text-gray);">${movement.visits} visits</div>
+                    </div>
+                    <div class="location-stats">
+                        <div style="font-weight: 600; color: var(--primary-green);">KSh ${movement.total_amount.toFixed(0)}</div>
+                        <div>${Math.round(movement.total_time_minutes / movement.visits)} min avg</div>
+                    </div>
+                `;
+                locationsList.appendChild(locationItem);
+            });
+        }
+        
+        function showLoading() {
+            // Add loading overlay
+            const overlay = document.createElement('div');
+            overlay.id = 'loadingOverlay';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(255, 255, 255, 0.8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 9999;
+                font-size: 1.2rem;
+                color: var(--text-gray);
+            `;
+            overlay.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 10px;"></i>Updating data...';
+            document.body.appendChild(overlay);
+        }
+        
+        function hideLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.remove();
+            }
+        }
+        
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'warning' ? '#f59e0b' : type === 'error' ? '#ef4444' : '#16a34a'};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                z-index: 9999;
+                font-size: 14px;
+                font-weight: 500;
+                animation: slideIn 0.3s ease;
+            `;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+        
+        // AI Assistant functionality
+        function initializeAIAssistant() {
+            const aiAssistantBtn = document.getElementById('aiAssistantBtn');
+            const aiChatModal = document.getElementById('aiChatModal');
+            const aiChatClose = document.getElementById('aiChatClose');
+            const aiChatInput = document.getElementById('aiChatInput');
+            const aiChatSend = document.getElementById('aiChatSend');
+            const aiChatMessages = document.getElementById('aiChatMessages');
+            
+            function toggleAIChat() {
+                aiChatModal.classList.toggle('show');
+                document.body.classList.toggle('chat-open');
+                if (aiChatModal.classList.contains('show')) {
+                    aiChatInput.focus();
+                }
+            }
+            
+            function closeAIChat() {
+                aiChatModal.classList.remove('show');
+                document.body.classList.remove('chat-open');
+            }
+            
+            function sendAIMessage() {
+                const message = aiChatInput.value.trim();
+                if (!message) return;
+                
+                addMessage(message, 'user');
+                aiChatInput.value = '';
+                aiChatSend.disabled = true;
+                
+                // Show typing indicator
+                addTypingIndicator();
+                
+                // Send to AI API
+                fetch('/api/ai-chat/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken()
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        page_type: 'vehicle_dashboard',
+                        vehicle_plate: '{{ plate_number }}',
+                        filters: getCurrentFilters()
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    removeTypingIndicator();
+                    if (data.success) {
+                        addMessage(data.response, 'ai');
+                        if (data.source === 'openai') {
+                            addMessage('💡 Powered by OpenAI GPT', 'ai', true);
+                        }
+                    } else {
+                        addMessage('Sorry, I encountered an error. Please try again.', 'ai');
+                    }
+                })
+                .catch(error => {
+                    removeTypingIndicator();
+                    console.error('AI Chat Error:', error);
+                    // Fallback to local response
+                    const response = getVehicleAIResponse(message);
+                    addMessage(response, 'ai');
+                })
+                .finally(() => {
+                    aiChatSend.disabled = false;
+                });
+            }
+            
+            function getCurrentFilters() {
+                return {
+                    month: document.getElementById('monthFilter').value,
+                    day: document.getElementById('dayFilter').value,
+                    payment: document.getElementById('paymentFilter').value,
+                    startDate: document.getElementById('startDate').value,
+                    endDate: document.getElementById('endDate').value
+                };
+            }
+            
+            function addTypingIndicator() {
+                const typingDiv = document.createElement('div');
+                typingDiv.className = 'ai-message typing-indicator';
+                typingDiv.innerHTML = `
+                    <div class="ai-avatar"><i class="fas fa-robot"></i></div>
+                    <div class="ai-message-content">
+                        <div class="typing-dots">
+                            <span></span><span></span><span></span>
+                        </div>
+                    </div>
+                `;
+                aiChatMessages.appendChild(typingDiv);
+                aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+            }
+            
+            function removeTypingIndicator() {
+                const typing = document.querySelector('.typing-indicator');
+                if (typing) typing.remove();
+            }
+            
+            function getCsrfToken() {
+                return document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                       document.querySelector('meta[name="csrf-token"]')?.content || '';
+            }
+            
+            function addMessage(content, type, isSmall = false) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = type === 'user' ? 'user-message' : 'ai-message';
+                
+                const avatar = document.createElement('div');
+                avatar.className = type === 'user' ? 'user-avatar' : 'ai-avatar';
+                avatar.innerHTML = type === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+                
+                const messageContent = document.createElement('div');
+                messageContent.className = type === 'user' ? 'user-message-content' : 'ai-message-content';
+                if (isSmall) messageContent.style.fontSize = '12px';
+                messageContent.textContent = content;
+                
+                messageDiv.appendChild(avatar);
+                messageDiv.appendChild(messageContent);
+                
+                aiChatMessages.appendChild(messageDiv);
+                aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+            }
+            
+            function getVehicleAIResponse(message) {
+                const lowerMessage = message.toLowerCase();
+                const plateNumber = '{{ plate_number }}';
+                
+                if (lowerMessage.includes('total') || lowerMessage.includes('spent') || lowerMessage.includes('cost')) {
+                    return `Your vehicle ${plateNumber} has spent a total of {{ vehicle_data.total_revenue|default:"0" }} KSh across {{ vehicle_data.total_visits|default:"0" }} visits. Your average spending per visit is {{ vehicle_data.avg_amount|default:"0" }} KSh.`;
+                }
+                
+                if (lowerMessage.includes('favorite') || lowerMessage.includes('location') || lowerMessage.includes('where')) {
+                    return `Your most visited locations include {% for loc in vehicle_data.favorite_locations %}{{ loc.name }}{% if not forloop.last %}, {% endif %}{% endfor %}. You can see detailed statistics for each location in the dashboard.`;
+                }
+                
+                if (lowerMessage.includes('time') || lowerMessage.includes('duration') || lowerMessage.includes('how long')) {
+                    return `Your average parking duration is {{ vehicle_data.avg_duration|default:"0" }} minutes. This month you've spent {{ vehicle_data.monthly_duration_hours|default:"0" }} hours in total parking time.`;
+                }
+                
+                if (lowerMessage.includes('month') || lowerMessage.includes('recent') || lowerMessage.includes('this month')) {
+                    return `This month, your vehicle ${plateNumber} has made {{ vehicle_data.monthly_trips|default:"0" }} trips and spent {{ vehicle_data.monthly_revenue|default:"0" }} KSh. You can use the filters above to analyze different time periods.`;
+                }
+                
+                if (lowerMessage.includes('filter') || lowerMessage.includes('search') || lowerMessage.includes('analyze')) {
+                    return 'You can use the filters above to analyze your vehicle data by month, day of week, payment method, or date range. This helps you understand your parking patterns and spending habits better.';
+                }
+                
+                if (lowerMessage.includes('map') || lowerMessage.includes('location') || lowerMessage.includes('where')) {
+                    return 'The map above shows your vehicle\'s current location and favorite parking spots. Each marker represents a location where you\'ve parked, with details about visits and spending.';
+                }
+                
+                return `I can help you analyze your vehicle ${plateNumber} data including spending patterns, favorite locations, parking duration, and monthly trends. You can also use the filters to get specific insights. What would you like to know?`;
+            }
+            
+            // Event listeners
+            if (aiAssistantBtn) {
+                aiAssistantBtn.addEventListener('click', toggleAIChat);
+            }
+            
+            if (aiChatClose) {
+                aiChatClose.addEventListener('click', closeAIChat);
+            }
+            
+            if (aiChatSend) {
+                aiChatSend.addEventListener('click', sendAIMessage);
+            }
+            
+            if (aiChatInput) {
+                aiChatInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        sendAIMessage();
+                    }
+                });
+            }
+            
+            // Close AI chat when clicking outside
+            document.addEventListener('click', function(e) {
+                if (aiChatModal.classList.contains('show') && 
+                    !aiChatModal.contains(e.target) && 
+                    !aiAssistantBtn.contains(e.target)) {
+                    closeAIChat();
+                }
+            });
+            
+            // Close chat on escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && aiChatModal.classList.contains('show')) {
+                    closeAIChat();
+                }
+            });
+        }
+        
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

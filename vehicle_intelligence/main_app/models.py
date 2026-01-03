@@ -652,7 +652,7 @@ class Vehicle(models.Model):
 
 
 class ParkingRecord(models.Model):
-    """Parking records from your Excel data"""
+    """Parking records from your Excel data with enhanced features"""
     plate_number = models.CharField(max_length=20)
     entry_time = models.DateTimeField()
     exit_time = models.DateTimeField(null=True, blank=True)
@@ -668,14 +668,65 @@ class ParkingRecord(models.Model):
     parking_duration_minutes = models.IntegerField(null=True, blank=True)
     parking_status = models.CharField(max_length=20, default='completed')
     
+    # Temporal Features
+    entry_hour = models.IntegerField(null=True, blank=True)
+    entry_day_of_week = models.IntegerField(null=True, blank=True)  # 0=Monday, 6=Sunday
+    entry_week_of_year = models.IntegerField(null=True, blank=True)
+    entry_month = models.IntegerField(null=True, blank=True)
+    entry_quarter = models.IntegerField(null=True, blank=True)
+    is_weekend = models.BooleanField(default=False)
+    is_business_hours = models.BooleanField(default=False)
+    is_peak_hours = models.BooleanField(default=False)
+    is_night_entry = models.BooleanField(default=False)
+    season = models.CharField(max_length=10, null=True, blank=True)
+    
+    # Duration Features
+    duration_minutes = models.IntegerField(null=True, blank=True)
+    duration_category = models.CharField(max_length=20, null=True, blank=True)  # short, medium, long, extended
+    is_overstay = models.BooleanField(default=False)
+    duration_efficiency = models.FloatField(null=True, blank=True)  # 0-100 score
+    
+    # Vehicle Features
+    vehicle_visit_count = models.IntegerField(null=True, blank=True)
+    vehicle_total_revenue = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    vehicle_avg_duration = models.FloatField(null=True, blank=True)
+    vehicle_unique_sites = models.IntegerField(null=True, blank=True)
+    vehicle_usage_type = models.CharField(max_length=20, null=True, blank=True)  # frequent, regular, occasional, rare
+    vehicle_is_multi_site = models.BooleanField(default=False)
+    vehicle_revenue_tier = models.CharField(max_length=20, null=True, blank=True)  # high, medium, low, minimal
+    
+    # Organization Features
+    org_total_vehicles = models.IntegerField(null=True, blank=True)
+    org_total_revenue = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    org_avg_duration = models.FloatField(null=True, blank=True)
+    org_size_category = models.CharField(max_length=20, null=True, blank=True)  # large, medium, small, micro
+    org_performance_tier = models.CharField(max_length=20, null=True, blank=True)  # excellent, good, average, poor
+    
+    # Behavioral Features
+    is_duration_anomaly = models.BooleanField(default=False)
+    is_payment_anomaly = models.BooleanField(default=False)
+    days_since_last_visit = models.IntegerField(null=True, blank=True)
+    visit_frequency = models.CharField(max_length=20, null=True, blank=True)  # daily, weekly, monthly, rare, first_time
+    
+    # Financial Features
+    revenue_per_minute = models.FloatField(null=True, blank=True)
+    payment_efficiency = models.FloatField(null=True, blank=True)  # percentage
+    revenue_category = models.CharField(max_length=20, null=True, blank=True)  # high, medium, low, minimal
+    is_digital_payment = models.BooleanField(default=False)
+    
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
-        db_table = 'parking_records'
+        db_table = 'combined_dataset'
         ordering = ['-entry_time']
         indexes = [
             models.Index(fields=['plate_number', 'entry_time']),
             models.Index(fields=['organization', 'entry_time']),
+            models.Index(fields=['is_weekend', 'entry_time']),
+            models.Index(fields=['is_peak_hours', 'entry_time']),
+            models.Index(fields=['vehicle_usage_type']),
+            models.Index(fields=['duration_category']),
+            models.Index(fields=['revenue_category']),
         ]
     
     def __str__(self):

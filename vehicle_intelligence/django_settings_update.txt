@@ -1,0 +1,16 @@
+
+# Add this to your vehicle_intelligence/settings.py
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'vehicle_intelligence_db',
+        'USER': 'postgres',
+        'PASSWORD': 'your_postgres_password',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}
+
+# Make sure you have psycopg2 installed:
+# pip install psycopg2-binary

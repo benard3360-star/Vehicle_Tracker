@@ -1470,6 +1470,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a href="{% url 'user_credentials' %}" class="nav-link {% if request.resolver_match.url_name == 'user_credentials' %}active{% endif %}">
+                            <div class="nav-icon"><i class="fas fa-id-card"></i></div>
+                            <span class="nav-text">User Credentials</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a href="{% url 'add_user' %}" class="nav-link {% if request.resolver_match.url_name == 'add_user' %}active{% endif %}">
                             <div class="nav-icon"><i class="fas fa-user-plus"></i></div>
                             <span class="nav-text">Add User</span>

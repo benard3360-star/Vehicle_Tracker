@@ -508,17 +508,162 @@
         }
     }
 
-    @media (max-width: 480px) {
-        .dashboard-container {
-            padding: 0 16px;
+    /* Floating Chatbot */
+    .chatbot-toggle {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        width: 60px;
+        height: 60px;
+        background: var(--green-500);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        box-shadow: var(--shadow-lg);
+        transition: all 0.3s ease;
+        z-index: 1000;
+        border: none;
+    }
+
+    .chatbot-toggle:hover {
+        background: var(--green-600);
+        transform: scale(1.1);
+    }
+
+    .chatbot-panel {
+        position: fixed;
+        top: 0;
+        right: -400px;
+        width: 400px;
+        height: 100vh;
+        background: white;
+        box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
+        transition: right 0.3s ease;
+        z-index: 999;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chatbot-panel.open {
+        right: 0;
+    }
+
+    .chatbot-header {
+        padding: 20px;
+        background: var(--green-500);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .chatbot-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 4px;
+    }
+
+    .chatbot-messages {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        background: var(--gray-50);
+    }
+
+    .chatbot-input-area {
+        padding: 20px;
+        border-top: 1px solid var(--card-border);
+        background: white;
+    }
+
+    .chatbot-input-group {
+        display: flex;
+        gap: 8px;
+    }
+
+    .chatbot-input {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid var(--card-border);
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .chatbot-send {
+        padding: 12px 16px;
+        background: var(--green-500);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 500;
+    }
+
+    .dashboard-container.chatbot-open {
+        margin-right: 400px;
+        transition: margin-right 0.3s ease;
+    }
+
+    .message {
+        margin-bottom: 12px;
+        padding: 12px 16px;
+        border-radius: 12px;
+        max-width: 80%;
+        word-wrap: break-word;
+    }
+
+    .message.user {
+        background: var(--green-500);
+        color: white;
+        margin-left: auto;
+        text-align: right;
+    }
+
+    .message.ai {
+        background: white;
+        border: 1px solid var(--card-border);
+        margin-right: auto;
+    }
+
+    /* Typing indicator styles */
+    .typing-dots {
+        display: inline-flex;
+        gap: 4px;
+        align-items: center;
+        margin-left: 8px;
+    }
+    
+    .typing-dots span {
+        width: 6px;
+        height: 6px;
+        background: var(--green-500);
+        border-radius: 50%;
+        animation: typing 1.4s infinite ease-in-out;
+    }
+    
+    .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+    
+    @keyframes typing {
+        0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+        40% { transform: scale(1); opacity: 1; }
+    }
+
+    @media (max-width: 768px) {
+        .chatbot-panel {
+            width: 100vw;
+            right: -100vw;
         }
         
-        .kpi-card {
-            padding: 16px;
-        }
-        
-        .kpi-value {
-            font-size: 24px;
+        .dashboard-container.chatbot-open {
+            margin-right: 0;
         }
     }
 </style>
@@ -594,6 +739,70 @@
             <h3 class="card-title">Vehicle Analytics Overview</h3>
         </div>
         <div class="card-body">
+            <!-- Filters Section -->
+            <div style="background: var(--gray-50); padding: 20px; border-radius: 8px; margin-bottom: 32px;">
+                <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">Filters</h4>
+                <form method="GET" id="filterForm" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; align-items: end;">
+                    <div>
+                        <label style="font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 4px; display: block;">Month</label>
+                        <select name="month" class="filter-select" style="width: 100%; padding: 8px; border: 1px solid var(--card-border); border-radius: 6px; font-size: 14px;">
+                            <option value="">All Months</option>
+                            {% for month in filter_options.months %}
+                                <option value="{{ month.value }}" {% if applied_filters.month == month.value|stringformat:"s" %}selected{% endif %}>{{ month.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 4px; display: block;">Vehicle Type</label>
+                        <select name="vehicle_type" class="filter-select" style="width: 100%; padding: 8px; border: 1px solid var(--card-border); border-radius: 6px; font-size: 14px;">
+                            <option value="">All Types</option>
+                            {% for type in filter_options.vehicle_types %}
+                                <option value="{{ type }}" {% if applied_filters.vehicle_type == type %}selected{% endif %}>{{ type }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 4px; display: block;">Vehicle Brand</label>
+                        <select name="vehicle_brand" class="filter-select" style="width: 100%; padding: 8px; border: 1px solid var(--card-border); border-radius: 6px; font-size: 14px;">
+                            <option value="">All Brands</option>
+                            {% for brand in filter_options.vehicle_brands %}
+                                <option value="{{ brand }}" {% if applied_filters.vehicle_brand == brand %}selected{% endif %}>{{ brand }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 4px; display: block;">Payment Method</label>
+                        <select name="payment_method" class="filter-select" style="width: 100%; padding: 8px; border: 1px solid var(--card-border); border-radius: 6px; font-size: 14px;">
+                            <option value="">All Methods</option>
+                            {% for method in filter_options.payment_methods %}
+                                <option value="{{ method }}" {% if applied_filters.payment_method == method %}selected{% endif %}>{{ method }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 4px; display: block;">Plate Color</label>
+                        <select name="plate_color" class="filter-select" style="width: 100%; padding: 8px; border: 1px solid var(--card-border); border-radius: 6px; font-size: 14px;">
+                            <option value="">All Colors</option>
+                            {% for color in filter_options.plate_colors %}
+                                <option value="{{ color }}" {% if applied_filters.plate_color == color %}selected{% endif %}>{{ color }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 4px; display: block;">Year</label>
+                        <select name="year" class="filter-select" style="width: 100%; padding: 8px; border: 1px solid var(--card-border); border-radius: 6px; font-size: 14px;">
+                            <option value="">All Years</option>
+                            {% for year in filter_options.years %}
+                                <option value="{{ year }}" {% if applied_filters.year == year|stringformat:"s" %}selected{% endif %}>{{ year }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="submit" style="padding: 8px 16px; background: var(--green-500); color: white; border: none; border-radius: 6px; font-weight: 500; cursor: pointer;">Apply</button>
+                        <button type="button" id="resetFilters" style="padding: 8px 16px; background: var(--gray-100); color: var(--text-secondary); border: 1px solid var(--card-border); border-radius: 6px; font-weight: 500; cursor: pointer;">Reset</button>
+                    </div>
+                </form>
+            </div>
             <!-- Fleet Summary KPIs -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 32px;">
                 <div style="text-align: center; padding: 16px; background: var(--gray-50); border-radius: 8px;">
@@ -617,22 +826,9 @@
             <!-- Charts Row -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
                 <div>
-                    <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">Daily Trip Trends</h4>
-                    {% if daily_trips_chart %}
-                        <div id="dailyTripsChart" style="height: 300px;"></div>
-                    {% else %}
-                        <div style="height: 300px; display: flex; align-items: center; justify-content: center; background: var(--gray-50); border-radius: 8px; color: var(--text-muted);">
-                            <div style="text-align: center;">
-                                <i class="fas fa-chart-line" style="font-size: 32px; margin-bottom: 8px;"></i>
-                                <p>No trip data available</p>
-                            </div>
-                        </div>
-                    {% endif %}
-                </div>
-                <div>
                     <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">Parking Duration Analysis</h4>
-                    {% if parking_duration_chart %}
-                        <div id="parkingDurationChart" style="height: 300px;"></div>
+                    {% if org_parking_duration_chart %}
+                        <div id="orgParkingDurationChart" style="height: 300px;"></div>
                     {% else %}
                         <div style="height: 300px; display: flex; align-items: center; justify-content: center; background: var(--gray-50); border-radius: 8px; color: var(--text-muted);">
                             <div style="text-align: center;">
@@ -644,8 +840,8 @@
                 </div>
                 <div>
                     <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">Hourly Vehicle Entries</h4>
-                    {% if hourly_entries_chart %}
-                        <div id="hourlyEntriesChart" style="height: 300px;"></div>
+                    {% if org_hourly_entries_chart %}
+                        <div id="orgHourlyEntriesChart" style="height: 300px;"></div>
                     {% else %}
                         <div style="height: 300px; display: flex; align-items: center; justify-content: center; background: var(--gray-50); border-radius: 8px; color: var(--text-muted);">
                             <div style="text-align: center;">
@@ -656,22 +852,22 @@
                     {% endif %}
                 </div>
                 <div>
-                    <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">Vehicles per Organization</h4>
-                    {% if vehicles_per_site_chart %}
-                        <div id="vehiclesPerSiteChart" style="height: 300px;"></div>
+                    <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">Vehicles that Visited Organization</h4>
+                    {% if org_vehicles_count_chart %}
+                        <div id="orgVehiclesCountChart" style="height: 300px;"></div>
                     {% else %}
                         <div style="height: 300px; display: flex; align-items: center; justify-content: center; background: var(--gray-50); border-radius: 8px; color: var(--text-muted);">
                             <div style="text-align: center;">
-                                <i class="fas fa-building" style="font-size: 32px; margin-bottom: 8px;"></i>
-                                <p>No vehicle distribution data available</p>
+                                <i class="fas fa-car" style="font-size: 32px; margin-bottom: 8px;"></i>
+                                <p>No vehicle data available</p>
                             </div>
                         </div>
                     {% endif %}
                 </div>
                 <div>
                     <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">Revenue Analysis</h4>
-                    {% if revenue_per_site_chart %}
-                        <div id="revenuePerSiteChart" style="height: 300px;"></div>
+                    {% if org_revenue_analysis_chart %}
+                        <div id="orgRevenueAnalysisChart" style="height: 300px;"></div>
                     {% else %}
                         <div style="height: 300px; display: flex; align-items: center; justify-content: center; background: var(--gray-50); border-radius: 8px; color: var(--text-muted);">
                             <div style="text-align: center;">
@@ -681,28 +877,105 @@
                         </div>
                     {% endif %}
                 </div>
+            </div>
+            
+            <!-- Additional Chart Row -->
+            <div style="display: grid; grid-template-columns: 1fr; gap: 24px; margin-bottom: 24px;">
                 <div>
-                    <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">Visit Patterns</h4>
-                    {% if visit_patterns_chart %}
-                        <div id="visitPatternsChart" style="height: 300px;"></div>
-                    {% else %}
-                        <div style="height: 300px; display: flex; align-items: center; justify-content: center; background: var(--gray-50); border-radius: 8px; color: var(--text-muted);">
-                            <div style="text-align: center;">
-                                <i class="fas fa-chart-bar" style="font-size: 32px; margin-bottom: 8px;"></i>
-                                <p>No visit pattern data available</p>
-                            </div>
-                        </div>
-                    {% endif %}
-                </div>
-                <div>
-                    <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">Average Stay by Type</h4>
-                    {% if avg_stay_by_type_chart %}
-                        <div id="avgStayByTypeChart" style="height: 300px;"></div>
+                    <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">Average Stay by Vehicle Type</h4>
+                    {% if org_avg_stay_by_type_chart %}
+                        <div id="orgAvgStayByTypeChart" style="height: 300px;"></div>
                     {% else %}
                         <div style="height: 300px; display: flex; align-items: center; justify-content: center; background: var(--gray-50); border-radius: 8px; color: var(--text-muted);">
                             <div style="text-align: center;">
                                 <i class="fas fa-clock" style="font-size: 32px; margin-bottom: 8px;"></i>
                                 <p>No stay duration data available</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Business Intelligence Charts -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+                <div>
+                    <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">Capacity Utilization</h4>
+                    {% if org_capacity_utilization_chart %}
+                        <div id="orgCapacityUtilizationChart" style="height: 300px;"></div>
+                    {% else %}
+                        <div style="height: 300px; display: flex; align-items: center; justify-content: center; background: var(--gray-50); border-radius: 8px; color: var(--text-muted);">
+                            <div style="text-align: center;">
+                                <i class="fas fa-chart-bar" style="font-size: 32px; margin-bottom: 8px;"></i>
+                                <p>No capacity data available</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                <div>
+                    <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">Top Customer Analysis</h4>
+                    {% if org_customer_loyalty_chart %}
+                        <div id="orgCustomerLoyaltyChart" style="height: 300px;"></div>
+                    {% else %}
+                        <div style="height: 300px; display: flex; align-items: center; justify-content: center; background: var(--gray-50); border-radius: 8px; color: var(--text-muted);">
+                            <div style="text-align: center;">
+                                <i class="fas fa-users" style="font-size: 32px; margin-bottom: 8px;"></i>
+                                <p>No customer data available</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                <div>
+                    <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">Revenue Trends</h4>
+                    {% if org_revenue_trends_chart %}
+                        <div id="orgRevenueTrendsChart" style="height: 300px;"></div>
+                    {% else %}
+                        <div style="height: 300px; display: flex; align-items: center; justify-content: center; background: var(--gray-50); border-radius: 8px; color: var(--text-muted);">
+                            <div style="text-align: center;">
+                                <i class="fas fa-trending-up" style="font-size: 32px; margin-bottom: 8px;"></i>
+                                <p>No trend data available</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Advanced Analytics Charts -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+                <div>
+                    <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">Payment Methods Analysis</h4>
+                    {% if org_payment_behavior_chart %}
+                        <div id="orgPaymentBehaviorChart" style="height: 350px;"></div>
+                    {% else %}
+                        <div style="height: 350px; display: flex; align-items: center; justify-content: center; background: var(--gray-50); border-radius: 8px; color: var(--text-muted);">
+                            <div style="text-align: center;">
+                                <i class="fas fa-credit-card" style="font-size: 32px; margin-bottom: 8px;"></i>
+                                <p>No payment data available</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                <div>
+                    <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">Vehicle Brand Performance</h4>
+                    {% if org_vehicle_brand_performance_chart %}
+                        <div id="orgVehicleBrandPerformanceChart" style="height: 300px;"></div>
+                    {% else %}
+                        <div style="height: 300px; display: flex; align-items: center; justify-content: center; background: var(--gray-50); border-radius: 8px; color: var(--text-muted);">
+                            <div style="text-align: center;">
+                                <i class="fas fa-car" style="font-size: 32px; margin-bottom: 8px;"></i>
+                                <p>No brand data available</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                <div>
+                    <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">Seasonal Patterns</h4>
+                    {% if org_seasonal_patterns_chart %}
+                        <div id="orgSeasonalPatternsChart" style="height: 300px;"></div>
+                    {% else %}
+                        <div style="height: 300px; display: flex; align-items: center; justify-content: center; background: var(--gray-50); border-radius: 8px; color: var(--text-muted);">
+                            <div style="text-align: center;">
+                                <i class="fas fa-calendar" style="font-size: 32px; margin-bottom: 8px;"></i>
+                                <p>No seasonal data available</p>
                             </div>
                         </div>
                     {% endif %}
@@ -953,6 +1226,39 @@
         </div>
     </div>
 </div>
+
+<!-- Floating Chatbot -->
+<button class="chatbot-toggle" id="chatbotToggle">
+    <i class="fas fa-robot"></i>
+</button>
+
+<div class="chatbot-panel" id="chatbotPanel">
+    <div class="chatbot-header">
+        <div>
+            <h4 style="margin: 0; font-size: 18px;">AI Assistant</h4>
+            <small style="opacity: 0.9;">Ask me about your organization</small>
+        </div>
+        <button class="chatbot-close" id="chatbotClose">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    
+    <div class="chatbot-messages" id="chatbotMessages">
+        <div class="message ai">
+            <i class="fas fa-robot" style="margin-right: 8px; color: var(--green-500);"></i>
+            Hello! I'm your AI assistant. I can help you with analytics, user management, and answer questions about your organization.
+        </div>
+    </div>
+    
+    <div class="chatbot-input-area">
+        <div class="chatbot-input-group">
+            <input type="text" class="chatbot-input" id="chatbotInput" placeholder="Ask me anything...">
+            <button class="chatbot-send" id="chatbotSend">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -1031,45 +1337,339 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Render analytics charts
-    {% if daily_trips_chart %}
-    var dailyTripsData = {{ daily_trips_chart|safe }};
-    Plotly.newPlot('dailyTripsChart', dailyTripsData.data, dailyTripsData.layout, {responsive: true});
+    {% if has_vehicle_data %}
+    // Render organization-specific analytics charts
+    {% if org_parking_duration_chart %}
+    try {
+        const orgParkingDurationData = {{ org_parking_duration_chart|safe }};
+        Plotly.newPlot('orgParkingDurationChart', orgParkingDurationData.data, orgParkingDurationData.layout, {
+            responsive: true,
+            displayModeBar: false
+        });
+    } catch (e) {
+        console.error('Error rendering org parking duration chart:', e);
+    }
+    {% endif %}
+    
+    {% if org_hourly_entries_chart %}
+    try {
+        const orgHourlyEntriesData = {{ org_hourly_entries_chart|safe }};
+        Plotly.newPlot('orgHourlyEntriesChart', orgHourlyEntriesData.data, orgHourlyEntriesData.layout, {
+            responsive: true,
+            displayModeBar: false
+        });
+    } catch (e) {
+        console.error('Error rendering org hourly entries chart:', e);
+    }
+    {% endif %}
+    
+    {% if org_vehicles_count_chart %}
+    try {
+        const orgVehiclesCountData = {{ org_vehicles_count_chart|safe }};
+        Plotly.newPlot('orgVehiclesCountChart', orgVehiclesCountData.data, orgVehiclesCountData.layout, {
+            responsive: true,
+            displayModeBar: false
+        });
+    } catch (e) {
+        console.error('Error rendering org vehicles count chart:', e);
+    }
+    {% endif %}
+    
+    {% if org_revenue_analysis_chart %}
+    try {
+        const orgRevenueAnalysisData = {{ org_revenue_analysis_chart|safe }};
+        Plotly.newPlot('orgRevenueAnalysisChart', orgRevenueAnalysisData.data, orgRevenueAnalysisData.layout, {
+            responsive: true,
+            displayModeBar: false
+        });
+    } catch (e) {
+        console.error('Error rendering org revenue analysis chart:', e);
+    }
+    {% endif %}
+    
+    {% if org_avg_stay_by_type_chart %}
+    try {
+        const orgAvgStayByTypeData = {{ org_avg_stay_by_type_chart|safe }};
+        Plotly.newPlot('orgAvgStayByTypeChart', orgAvgStayByTypeData.data, orgAvgStayByTypeData.layout, {
+            responsive: true,
+            displayModeBar: false
+        });
+    } catch (e) {
+        console.error('Error rendering org avg stay by type chart:', e);
+    }
+    {% endif %}
+    
+    {% if org_capacity_utilization_chart %}
+    try {
+        const orgCapacityUtilizationData = {{ org_capacity_utilization_chart|safe }};
+        Plotly.newPlot('orgCapacityUtilizationChart', orgCapacityUtilizationData.data, orgCapacityUtilizationData.layout, {
+            responsive: true,
+            displayModeBar: false
+        });
+    } catch (e) {
+        console.error('Error rendering org capacity utilization chart:', e);
+    }
+    {% endif %}
+    
+    {% if org_customer_loyalty_chart %}
+    try {
+        const orgCustomerLoyaltyData = {{ org_customer_loyalty_chart|safe }};
+        Plotly.newPlot('orgCustomerLoyaltyChart', orgCustomerLoyaltyData.data, orgCustomerLoyaltyData.layout, {
+            responsive: true,
+            displayModeBar: false
+        });
+    } catch (e) {
+        console.error('Error rendering org customer loyalty chart:', e);
+    }
+    {% endif %}
+    
+    {% if org_revenue_trends_chart %}
+    try {
+        const orgRevenueTrendsData = {{ org_revenue_trends_chart|safe }};
+        Plotly.newPlot('orgRevenueTrendsChart', orgRevenueTrendsData.data, orgRevenueTrendsData.layout, {
+            responsive: true,
+            displayModeBar: false
+        });
+    } catch (e) {
+        console.error('Error rendering org revenue trends chart:', e);
+    }
+    {% endif %}
+    
+    {% if org_operational_efficiency_chart %}
+    try {
+        const orgOperationalEfficiencyData = {{ org_operational_efficiency_chart|safe }};
+        Plotly.newPlot('orgOperationalEfficiencyChart', orgOperationalEfficiencyData.data, orgOperationalEfficiencyData.layout, {
+            responsive: true,
+            displayModeBar: false
+        });
+    } catch (e) {
+        console.error('Error rendering org operational efficiency chart:', e);
+    }
+    {% endif %}
+    
+    {% if org_payment_behavior_chart %}
+    try {
+        const orgPaymentBehaviorData = {{ org_payment_behavior_chart|safe }};
+        Plotly.newPlot('orgPaymentBehaviorChart', orgPaymentBehaviorData.data, orgPaymentBehaviorData.layout, {
+            responsive: true,
+            displayModeBar: false
+        });
+    } catch (e) {
+        console.error('Error rendering org payment behavior chart:', e);
+    }
+    {% endif %}
+    
+    {% if org_vehicle_brand_performance_chart %}
+    try {
+        const orgVehicleBrandPerformanceData = {{ org_vehicle_brand_performance_chart|safe }};
+        Plotly.newPlot('orgVehicleBrandPerformanceChart', orgVehicleBrandPerformanceData.data, orgVehicleBrandPerformanceData.layout, {
+            responsive: true,
+            displayModeBar: false
+        });
+    } catch (e) {
+        console.error('Error rendering org vehicle brand performance chart:', e);
+    }
+    {% endif %}
+    
+    {% if org_seasonal_patterns_chart %}
+    try {
+        const orgSeasonalPatternsData = {{ org_seasonal_patterns_chart|safe }};
+        Plotly.newPlot('orgSeasonalPatternsChart', orgSeasonalPatternsData.data, orgSeasonalPatternsData.layout, {
+            responsive: true,
+            displayModeBar: false
+        });
+    } catch (e) {
+        console.error('Error rendering org seasonal patterns chart:', e);
+    }
+    {% endif %}
     {% endif %}
 
-    {% if parking_duration_chart %}
-    var parkingDurationData = {{ parking_duration_chart|safe }};
-    Plotly.newPlot('parkingDurationChart', parkingDurationData.data, parkingDurationData.layout, {responsive: true});
-    {% endif %}
+    // Filter functionality
+    const filterSelects = document.querySelectorAll('.filter-select');
+    const resetFiltersBtn = document.getElementById('resetFilters');
     
-    {% if hourly_entries_chart %}
-    var hourlyEntriesData = {{ hourly_entries_chart|safe }};
-    Plotly.newPlot('hourlyEntriesChart', hourlyEntriesData.data, hourlyEntriesData.layout, {responsive: true});
-    {% endif %}
+    if (resetFiltersBtn) {
+        resetFiltersBtn.addEventListener('click', function() {
+            filterSelects.forEach(select => select.value = '');
+            document.getElementById('filterForm').submit();
+        });
+    }
     
-    {% if vehicles_per_site_chart %}
-    var vehiclesPerSiteData = {{ vehicles_per_site_chart|safe }};
-    Plotly.newPlot('vehiclesPerSiteChart', vehiclesPerSiteData.data, vehiclesPerSiteData.layout, {responsive: true});
-    {% endif %}
-    
-    {% if revenue_per_site_chart %}
-    var revenuePerSiteData = {{ revenue_per_site_chart|safe }};
-    Plotly.newPlot('revenuePerSiteChart', revenuePerSiteData.data, revenuePerSiteData.layout, {responsive: true});
-    {% endif %}
-    
-    {% if visit_patterns_chart %}
-    var visitPatternsData = {{ visit_patterns_chart|safe }};
-    Plotly.newPlot('visitPatternsChart', visitPatternsData.data, visitPatternsData.layout, {responsive: true});
-    {% endif %}
-    
-    {% if avg_stay_by_type_chart %}
-    var avgStayByTypeData = {{ avg_stay_by_type_chart|safe }};
-    Plotly.newPlot('avgStayByTypeChart', avgStayByTypeData.data, avgStayByTypeData.layout, {responsive: true});
-    {% endif %}
+    // Auto-submit on filter change
+    filterSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            document.getElementById('filterForm').submit();
+        });
+    });
 
-    // Auto-refresh data every 5 minutes
-    setInterval(() => {
-        console.log('Auto-refreshing organization dashboard data...');
-    }, 300000);
+    // Advanced AI Chatbot functionality
+    const chatbotToggle = document.getElementById('chatbotToggle');
+    const chatbotPanel = document.getElementById('chatbotPanel');
+    const chatbotClose = document.getElementById('chatbotClose');
+    const chatbotInput = document.getElementById('chatbotInput');
+    const chatbotSend = document.getElementById('chatbotSend');
+    const chatbotMessages = document.getElementById('chatbotMessages');
+    const dashboardContainer = document.querySelector('.dashboard-container');
+
+    function toggleChatbot() {
+        chatbotPanel.classList.toggle('open');
+        dashboardContainer.classList.toggle('chatbot-open');
+        if (chatbotPanel.classList.contains('open')) {
+            chatbotInput.focus();
+        }
+    }
+
+    function addChatMessage(message, isUser = false, isSmall = false) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isUser ? 'user' : 'ai'}`;
+        
+        if (!isUser) {
+            messageDiv.innerHTML = `<i class="fas fa-robot" style="margin-right: 8px; color: var(--green-500);"></i>${message}`;
+        } else {
+            messageDiv.textContent = message;
+        }
+        
+        if (isSmall) {
+            messageDiv.style.fontSize = '12px';
+            messageDiv.style.opacity = '0.8';
+        }
+        
+        chatbotMessages.appendChild(messageDiv);
+        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+    }
+
+    function addTypingIndicator() {
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'message ai typing-indicator';
+        typingDiv.innerHTML = `
+            <i class="fas fa-robot" style="margin-right: 8px; color: var(--green-500);"></i>
+            <div class="typing-dots">
+                <span></span><span></span><span></span>
+            </div>
+        `;
+        chatbotMessages.appendChild(typingDiv);
+        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+    }
+
+    function removeTypingIndicator() {
+        const typing = document.querySelector('.typing-indicator');
+        if (typing) typing.remove();
+    }
+
+    function getCsrfToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+               document.querySelector('meta[name="csrf-token"]')?.content || '';
+    }
+
+    function sendChatMessage() {
+        const message = chatbotInput.value.trim();
+        if (!message) return;
+
+        addChatMessage(message, true);
+        chatbotInput.value = '';
+        chatbotSend.disabled = true;
+
+        // Show typing indicator
+        addTypingIndicator();
+
+        // Send to AI API
+        fetch('/api/ai-chat/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify({
+                message: message,
+                page_type: 'org_admin_dashboard',
+                filters: {}
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            removeTypingIndicator();
+            if (data.success) {
+                addChatMessage(data.response);
+                if (data.source === 'openai') {
+                    addChatMessage('💡 Powered by OpenAI GPT', false, true);
+                }
+            } else {
+                addChatMessage('Sorry, I encountered an error. Please try again.');
+            }
+        })
+        .catch(error => {
+            removeTypingIndicator();
+            console.error('AI Chat Error:', error);
+            // Enhanced fallback responses for org admin
+            const response = getOrgAdminAIResponse(message);
+            addChatMessage(response);
+        })
+        .finally(() => {
+            chatbotSend.disabled = false;
+        });
+    }
+
+    function getOrgAdminAIResponse(message) {
+        const lowerMessage = message.toLowerCase();
+        const userCount = document.querySelector('.kpi-value')?.textContent || '0';
+        
+        if (lowerMessage.includes('summary') || lowerMessage.includes('overview')) {
+            return `Organization Summary: You manage ${userCount} users in your organization. I can provide insights on user activity, role distribution, profile completion rates, and generate detailed management reports.`;
+        }
+        if (lowerMessage.includes('users') || lowerMessage.includes('employees')) {
+            return `User Management: Your organization has ${userCount} users. I can help analyze user activity patterns, identify users needing attention, track profile completion, and suggest user engagement strategies.`;
+        }
+        if (lowerMessage.includes('report') || lowerMessage.includes('analytics')) {
+            return 'I can generate comprehensive reports including user activity analysis, role distribution, department analytics, and profile completion tracking. Would you like me to create a detailed management report?';
+        }
+        if (lowerMessage.includes('recommendation') || lowerMessage.includes('optimize')) {
+            return 'Optimization Recommendations: Focus on completing incomplete profiles, engage inactive users, balance role distribution, and implement regular user activity monitoring for better organizational efficiency.';
+        }
+        if (lowerMessage.includes('vehicle') || lowerMessage.includes('fleet')) {
+            return 'Fleet Analytics: I can analyze your organization\'s vehicle usage patterns, parking trends, revenue generation, and provide fleet optimization recommendations based on the data shown in your analytics section.';
+        }
+        if (lowerMessage.includes('help') || lowerMessage.includes('what can you do')) {
+            return 'I can help with: User management insights, organizational analytics, fleet performance analysis, report generation, optimization recommendations, and answering questions about your dashboard metrics. What would you like to explore?';
+        }
+        
+        return `I can provide insights about your organization's ${userCount} users, analyze performance metrics, generate reports, and help with user management decisions. What specific aspect would you like me to analyze?`;
+    }
+
+    if (chatbotToggle) {
+        chatbotToggle.addEventListener('click', toggleChatbot);
+    }
+
+    if (chatbotClose) {
+        chatbotClose.addEventListener('click', toggleChatbot);
+    }
+
+    if (chatbotSend) {
+        chatbotSend.addEventListener('click', sendChatMessage);
+    }
+
+    if (chatbotInput) {
+        chatbotInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendChatMessage();
+            }
+        });
+    }
+
+    // Close chatbot when clicking outside
+    document.addEventListener('click', function(e) {
+        if (chatbotPanel.classList.contains('open') && 
+            !chatbotPanel.contains(e.target) && 
+            !chatbotToggle.contains(e.target)) {
+            toggleChatbot();
+        }
+    });
+
+    // Close chatbot on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && chatbotPanel.classList.contains('open')) {
+            toggleChatbot();
+        }
+    });
 });
 </script>
 {% endblock %}

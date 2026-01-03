@@ -1,7 +1,9 @@
 # urls.py - Update with profile URLs
 
 from django.urls import path
-from . import views, api_views, ai_views
+from . import views
+from .sync_api import sync_users_api
+from . import ai_views
 
 urlpatterns = [
     # Authentication
@@ -12,6 +14,7 @@ urlpatterns = [
     
     # Dashboards
     path('dashboard/', views.dashboard, name='dashboard'),
+    path('vehicle-dashboard/', views.vehicle_dashboard, name='vehicle_dashboard'),
     
     # Profile Management
     path('profile/', views.profile_view, name='profile_view'),
@@ -36,6 +39,7 @@ urlpatterns = [
     path('vehicle-alert/', views.vehicle_alert, name='vehicle_alert'),
     
     # Super Admin API Endpoints
+    path('api/sync-users/', sync_users_api, name='sync_users_api'),
     path('super-admin/create-org/', views.super_admin_create_organization, name='super_admin_create_org'),
     path('super-admin/create-org-admin/', views.super_admin_create_org_admin, name='super_admin_create_org_admin'),
     path('super-admin/create-super-admin/', views.super_admin_create_super_admin, name='super_admin_create_super_admin'),
@@ -46,6 +50,7 @@ urlpatterns = [
     
     # Organization Admin
     path('org-admin/dashboard/', views.org_admin_dashboard, name='org_admin_dashboard'),
+    path('org-admin/user-credentials/', views.user_credentials, name='user_credentials'),
     path('org-admin/dashboard/layer2/', views.org_admin_dashboard_layer2, name='org_admin_dashboard_layer2'),
     path('org-admin/export-report/', views.export_org_admin_report, name='export_org_admin_report'),
     path('org-admin/add-user/', views.add_user, name='add_user'),
@@ -69,7 +74,7 @@ urlpatterns = [
     path('api/ai-suggestions/', ai_views.ai_suggestions_endpoint, name='ai_suggestions_endpoint'),
     
     # REST API Endpoints
-    path('api/vehicles/search/', api_views.VehicleSearchAPIView.as_view(), name='vehicle_search_api'),
+    # path('api/vehicles/search/', api_views.VehicleSearchAPIView.as_view(), name='vehicle_search_api'),
     
     # Admin Module Views (for admin roles)
     path('analytics/', views.analytics, name='analytics'),

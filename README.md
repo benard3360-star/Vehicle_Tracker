@@ -180,6 +180,60 @@ vehicle-intelligence-system/
 - **Graceful Fallbacks** - Intelligent local responses when API unavailable
 - **Source Attribution** - Clear indication of OpenAI vs fallback responses
 
+## 🔬 Advanced Feature Engineering
+
+### Automated Data Enrichment
+- **40+ Calculated Features** - Automatically generated from raw parking data
+- **Real-time Processing** - Features updated as new data arrives
+- **Performance Optimized** - Efficient batch processing with database indexing
+- **Analytics Ready** - Features designed for advanced visualizations and ML
+
+### Feature Categories
+
+#### 🕒 Temporal Features
+- **Time Analysis**: Hour, day of week, month, quarter, season
+- **Business Intelligence**: Weekend detection, business hours, peak hours
+- **Pattern Recognition**: Night entries, seasonal trends
+
+#### ⏱️ Duration Features  
+- **Smart Categories**: Short (≤30min), Medium (30min-2h), Long (2h-8h), Extended (>8h)
+- **Efficiency Scoring**: 0-100 efficiency rating based on optimal duration
+- **Overstay Detection**: Automatic policy violation identification
+
+#### 🚗 Vehicle Behavior Features
+- **Usage Classification**: Frequent, Regular, Occasional, Rare visitors
+- **Revenue Tiers**: High, Medium, Low, Minimal revenue contributors
+- **Multi-site Analysis**: Cross-location behavior tracking
+- **Visit Patterns**: Daily, Weekly, Monthly, Rare frequency analysis
+
+#### 🏢 Organization Intelligence
+- **Size Categories**: Large, Medium, Small, Micro organizations
+- **Performance Tiers**: Excellent, Good, Average, Poor performers
+- **Capacity Analysis**: Vehicle count and revenue correlation
+
+#### 🧠 Behavioral Analytics
+- **Anomaly Detection**: Duration and payment pattern anomalies
+- **Loyalty Metrics**: Days since last visit, return patterns
+- **Predictive Indicators**: Visit frequency classification
+
+#### 💰 Financial Intelligence
+- **Revenue Efficiency**: Revenue per minute calculations
+- **Payment Analysis**: Digital vs traditional payment patterns
+- **Profitability Scoring**: Payment efficiency ratings
+
+### Usage Instructions
+
+```bash
+# Run feature engineering on existing data
+python manage.py run_feature_engineering
+
+# Dry run to see what would be processed
+python manage.py run_feature_engineering --dry-run
+
+# Process with custom chunk size
+python manage.py run_feature_engineering --chunk-size 500
+```
+
 ## 🚀 Key Modules
 
 ### 1. Vehicle Tracking (`/vehicle-tracking/`)
@@ -283,7 +337,13 @@ vehicle-intelligence-system/
 
 ### 13. Data Processing (`/data-preprocessing/`)
 - Excel file import and processing
-- Advanced feature engineering
+- **Advanced Feature Engineering** - Enriches data with 40+ calculated features
+- **Temporal Features** - Hour, day, season, peak hours, business hours analysis
+- **Duration Features** - Categories, efficiency scores, overstay detection
+- **Vehicle Features** - Usage patterns, revenue tiers, multi-site behavior
+- **Organization Features** - Size categories, performance tiers
+- **Behavioral Features** - Anomaly detection, visit frequency patterns
+- **Financial Features** - Revenue efficiency, payment method analysis
 - Vehicle and movement data creation
 - Organization mapping and creation
 - Data validation and cleaning
@@ -435,6 +495,7 @@ For support and questions:
 - **v1.6.1** - Added **Leaflet.js mapping** with free OpenStreetMap integration and interactive organization markers
 - **v1.6.2** - Implemented **multi-dimensional filtering** (Organization, Vehicle Brand, Vehicle Type) with reset functionality
 - **v1.7.0** - **Advanced AI Assistant Integration** with OpenAI GPT support, context-aware analysis, predictive insights, and intelligent report generation across Dashboard, Analytics, and Vehicle Alert pages
+- **v1.8.0** - **Advanced Feature Engineering System** with 40+ calculated features including temporal, behavioral, financial, and anomaly detection capabilities for enhanced analytics
 
 ---
 

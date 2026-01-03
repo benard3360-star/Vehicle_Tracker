@@ -1143,7 +1143,11 @@
             <div id="noDataState" class="no-data" style="display: none;">
                 <i class="fas fa-car" style="font-size: 48px; margin-bottom: 16px; opacity: 0.3;"></i>
                 <h4 style="color: #6b7280; margin-bottom: 8px;">No Vehicle Data Found</h4>
-                <p>We couldn't find any parking records for this license plate number.</p>
+                <p id="noDataMessage">We couldn't find any parking records for this license plate number.</p>
+                <div id="debugInfo" style="margin-top: 16px; padding: 12px; background: #f3f4f6; border-radius: 8px; font-size: 12px; color: #6b7280; display: none;">
+                    <strong>Available plates in your organization:</strong>
+                    <div id="samplePlates" style="margin-top: 8px; font-family: monospace;"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -1548,6 +1552,34 @@
                         analyticsData.style.display = 'block';
                     } else {
                         console.log('No data or error:', data.error);
+                        document.getElementById('noDataMessage').textContent = data.error || 'No vehicle data found';
+                        
+                        // Show debug info if available
+                        if (data.debug_info) {
+                            const debugDiv = document.getElementById('debugInfo');
+                            const samplePlatesDiv = document.getElementById('samplePlates');
+                            
+                            let debugText = '';
+                            if (data.debug_info.sample_plates_in_org && data.debug_info.sample_plates_in_org.length > 0) {
+                                debugText += 'Sample plates: ' + data.debug_info.sample_plates_in_org.join(', ') + '\n\n';
+                            }
+                            if (data.debug_info.real_analytics_columns) {
+                                debugText += 'Real analytics columns: ' + data.debug_info.real_analytics_columns.join(', ') + '\n\n';
+                            }
+                            if (data.debug_info.combined_dataset_columns) {
+                                debugText += 'Combined dataset columns: ' + data.debug_info.combined_dataset_columns.join(', ') + '\n\n';
+                            }
+                            if (data.debug_info.real_analytics_orgs) {
+                                debugText += 'Real analytics orgs: ' + data.debug_info.real_analytics_orgs.join(', ') + '\n';
+                            }
+                            if (data.debug_info.combined_dataset_orgs) {
+                                debugText += 'Combined dataset orgs: ' + data.debug_info.combined_dataset_orgs.join(', ');
+                            }
+                            
+                            samplePlatesDiv.innerHTML = debugText || 'No data found in either table';
+                            debugDiv.style.display = 'block';
+                        }
+                        
                         noDataState.style.display = 'block';
                         resetModuleCards();
                     }
